@@ -10,6 +10,7 @@ import utils.MoteurMorphologique;
 import utils.MoteurMorphologique.ResultatValidation;
 import utils.MoteurMorphologique.ResultatDecomposition;
 import models.RacineNode;
+import models.Scheme;
 import java.util.List;
 import javax.swing.plaf.basic.BasicScrollBarUI;
 
@@ -24,7 +25,7 @@ public class MainSwing extends JFrame {
     private MoteurMorphologique moteur;
 
     private JTextArea outputArea;
-    private JTextField racineField, motField, racineValField, motDecField, rechField, nouvelleRacineField;
+    private JTextField racineField, motField, racineValField, motDecField, rechField, rechSchemeField, nouvelleRacineField;
     private JComboBox<String> schemeCombo;
 
     private static final String FICHIER_RACINES = "data/racines.txt";
@@ -449,35 +450,59 @@ public class MainSwing extends JFrame {
     }
 
     private JPanel creerPanneauSchemesModerne() {
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBackground(BG_LIGHT);
 
-        JPanel card = creerCarteModerne();
-        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
+            JPanel panel = new JPanel();
+            panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+            panel.setBackground(BG_LIGHT);
 
-        JPanel header = creerEnteteSection("🔧", "الأوزان المورفولوجية | Schèmes morphologiques");
-        card.add(header);
+            JPanel card = creerCarteModerne();
+            card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
 
-        panel.add(card);
-        panel.add(Box.createVerticalStrut(20));
+            JPanel header = creerEnteteSection("🔧", "الأوزان المورفولوجية | Schèmes morphologiques");
+            card.add(header);
+            card.add(Box.createVerticalStrut(20));
 
-        // Grille de schèmes
-        JPanel gridPanel = new JPanel(new GridLayout(0, 2, 15, 15));
-        gridPanel.setBackground(BG_LIGHT);
+            // Panneau de recherche
+            JPanel searchPanel = new JPanel(new BorderLayout(10, 0));
+            searchPanel.setBackground(Color.WHITE);
+            searchPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
 
-        List<String> schemes = tableSchemes.getTousLesNoms();
-        for (String scheme : schemes) {
-            gridPanel.add(creerCarteScheme(scheme));
+            rechSchemeField = creerChampTexteArabe();
+            rechSchemeField.setToolTipText("ابحث عن وزن | Rechercher un schème");
+            searchPanel.add(rechSchemeField, BorderLayout.CENTER);
+
+            JButton rechercherBtn = creerBoutonPrimaire("🔍 بحث | Rechercher");
+            rechercherBtn.setPreferredSize(new Dimension(180, 50));
+            rechercherBtn.addActionListener(e -> rechercherScheme());
+            searchPanel.add(rechercherBtn, BorderLayout.EAST);
+
+            card.add(searchPanel);
+            card.add(Box.createVerticalStrut(15));
+
+            // Zone de résultats de recherche
+            outputArea = creerZoneResultats();
+            outputArea.setPreferredSize(new Dimension(0, 80));
+            card.add(outputArea);
+
+            panel.add(card);
+            panel.add(Box.createVerticalStrut(20));
+
+            // Grille de schèmes
+            JPanel gridPanel = new JPanel(new GridLayout(0, 2, 15, 15));
+            gridPanel.setBackground(BG_LIGHT);
+
+            List<String> schemes = tableSchemes.getTousLesNoms();
+            for (String scheme : schemes) {
+                gridPanel.add(creerCarteScheme(scheme));
+            }
+
+            JScrollPane scroll = new JScrollPane(gridPanel);
+            scroll.setBorder(null);
+            scroll.getVerticalScrollBar().setUnitIncrement(16);
+            panel.add(scroll);
+
+            return panel;
         }
-
-        JScrollPane scroll = new JScrollPane(gridPanel);
-        scroll.setBorder(null);
-        scroll.getVerticalScrollBar().setUnitIncrement(16);
-        panel.add(scroll);
-
-        return panel;
-    }
 
     private JPanel creerCarteScheme(String scheme) {
         JPanel card = creerCarteModerne();
@@ -488,17 +513,24 @@ public class MainSwing extends JFrame {
         ));
         card.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
+
+
+        // Récupérer les informations du schème depuis la table de hachage
+        Scheme schemeObj = tableSchemes.rechercher(scheme);
+        String type = (schemeObj != null) ? schemeObj.getType().toString() : "N/A";
+        String description = (schemeObj != null) ? schemeObj.getDescription() : "Aucune description disponible";
+
         JLabel schemeLabel = new JLabel(scheme);
         schemeLabel.setFont(new Font("Arial Unicode MS", Font.BOLD, 28));
         schemeLabel.setForeground(PRIMARY_GREEN);
         schemeLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel typeLabel = new JLabel("Type: NOM_AGENT");
+        JLabel typeLabel = new JLabel("Type: " + type);
         typeLabel.setFont(new Font("Segoe UI", Font.BOLD, 11));
         typeLabel.setForeground(PRIMARY_GREEN_LIGHT);
         typeLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel descLabel = new JLabel("Description du schème morphologique");
+        JLabel descLabel = new JLabel("<html><div style='width:280px'>" + description + "</div></html>");
         descLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         descLabel.setForeground(TEXT_GRAY);
         descLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -744,7 +776,7 @@ public class MainSwing extends JFrame {
     private JTextArea creerZoneResultats() {
         JTextArea area = new JTextArea(6, 50);
         area.setEditable(false);
-        area.setFont(new Font("Consolas", Font.PLAIN, 13));
+        area.setFont(new Font("Arial Unicode MS", Font.PLAIN, 13));
         area.setBackground(new Color(249, 250, 251));
         area.setBorder(new CompoundBorder(
                 new LineBorder(BORDER_COLOR, 1, true),
@@ -752,6 +784,7 @@ public class MainSwing extends JFrame {
         ));
         area.setLineWrap(true);
         area.setWrapStyleWord(true);
+        setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
         return area;
     }
 
@@ -888,6 +921,26 @@ public class MainSwing extends JFrame {
 
         // Rafraîchir l'affichage
         cardLayout.show(contentPanel, "racines");
+    }
+    private void rechercherScheme() {
+        String nom = rechSchemeField.getText().trim();
+
+        if (nom.isEmpty()) {
+            afficherErreur("يرجى إدخال اسم الوزن | Veuillez entrer le nom du schème");
+            return;
+        }
+
+        Scheme scheme = tableSchemes.rechercher(nom);
+
+        if (scheme != null) {
+            afficherSucces("✓ وزن موجود | Schème trouvé!\n\n" +
+                    " الاسم | Nom: " + scheme.getNom() + "\n" +
+                    "️ النوع | Type: " + scheme.getType() + "\n" +
+                    " الوصف | Description: " + scheme.getDescription());
+        } else {
+            afficherErreur("✗ وزن غير موجود | Schème non trouvé!\n\n" +
+                    "الوزن '" + nom + "' غير موجود في النظام");
+        }
     }
 
     private void afficherSucces(String message) {
