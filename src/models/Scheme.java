@@ -52,19 +52,27 @@ public class Scheme {
             throw new IllegalArgumentException("La racine doit être trilitère (3 lettres)");
         }
 
-        // Extraire les trois lettre de la racine
+        // Extraire les trois lettres de la racine
         char c1 = racine.charAt(0);
         char c2 = racine.charAt(1);
         char c3 = racine.charAt(2);
 
-        // Remplacer les positions dans le pattern
-        // juste pour la lisibilité ma3malnech boucle wahda so complexité 3n instead of n 5tr deja schemes 9sar
-        String resultat = pattern;
-        resultat = resultat.replace('ف', c1);
-        resultat = resultat.replace('ع', c2);
-        resultat = resultat.replace('ل', c3);
+        // Construire le résultat caractère par caractère
+        StringBuilder resultat = new StringBuilder();
 
-        return resultat;
+        for (char ch : pattern.toCharArray()) {
+            if (ch == 'ف') {
+                resultat.append(c1);
+            } else if (ch == 'ع') {
+                resultat.append(c2);
+            } else if (ch == 'ل') {
+                resultat.append(c3);
+            } else {
+                resultat.append(ch);  // Garder les autres caractères (voyelles, etc.)
+            }
+        }
+
+        return resultat.toString();
     }
 
     /**
