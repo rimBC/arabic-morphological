@@ -28,10 +28,11 @@ public class MainSwing extends JFrame {
     // Zone de résultats par panneau
     private JTextArea outputAreaGeneration;
     private JTextArea outputAreaValidation;
+    private JTextArea outputAreaDecomposition;
     private JTextArea outputAreaSchemes;
 
     private JComboBox<String> racineCombo; // Changé en ComboBox
-    private JTextField motField, racineValField, motDecField, rechField, rechSchemeField, nouvelleRacineField;
+    private JTextField racineField, motField, racineValField, motDecField, rechField, rechSchemeField, nouvelleRacineField;
     private JComboBox<String> schemeCombo;
 
     private static final String FICHIER_RACINES = "data/racines.txt";
@@ -100,6 +101,7 @@ public class MainSwing extends JFrame {
 
         contentPanel.add(creerPanneauGenerationModerne(), "generation");
         contentPanel.add(creerPanneauValidationModerne(), "validation");
+        contentPanel.add(creerPanneauDecompositionModerne(), "decomposition");
         contentPanel.add(creerPanneauRacinesModerne(), "racines");
         contentPanel.add(creerPanneauSchemesModerne(), "schemes");
         contentPanel.add(creerPanneauStatistiquesModerne(), "stats");
@@ -170,6 +172,7 @@ public class MainSwing extends JFrame {
         String[][] tabs = {
                 {"🔄", "التوليد | Génération", "generation"},
                 {"✓", "التحقق | Validation", "validation"},
+                {"🔬", "التحليل | Décomposition", "decomposition"},
                 {"📚", "الجذور | Racines", "racines"},
                 {"🔧", "الأوزان | Schèmes", "schemes"},
                 {"📊", "الإحصائيات | Stats", "stats"}
@@ -359,7 +362,44 @@ public class MainSwing extends JFrame {
 
         return panel;
     }
+    private JPanel creerPanneauDecompositionModerne() {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBackground(BG_LIGHT);
 
+        JPanel card = creerCarteModerne();
+        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
+
+        JPanel header = creerEnteteSection("🔬", "التحليل المورفولوجي | Décomposition morphologique");
+        card.add(header);
+        card.add(Box.createVerticalStrut(25));
+
+        card.add(creerLabelModerne("الكلمة (Mot à décomposer)"));
+        card.add(Box.createVerticalStrut(8));
+        motDecField = creerChampTexteArabe();
+        motDecField.setToolTipText("مثال: كاتب");
+        card.add(motDecField);
+        card.add(Box.createVerticalStrut(25));
+
+        JButton decomposerBtn = creerBoutonPrimaire("🔬 تحليل | Décomposer");
+        decomposerBtn.addActionListener(e -> decomposerMot());
+        decomposerBtn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
+        card.add(decomposerBtn);
+
+        panel.add(card);
+        panel.add(Box.createVerticalStrut(20));
+
+        // Zone de résultats POUR CE PANNEAU
+        // Zone de résultats POUR CE PANNEAU
+        outputAreaDecomposition = creerZoneResultats();  // ← SANS "JTextArea" au début
+        JScrollPane scroll = new JScrollPane(outputAreaDecomposition);
+        scroll.setBorder(null);
+        scroll.setMaximumSize(new Dimension(Integer.MAX_VALUE, 250));
+        scroll.setPreferredSize(new Dimension(Integer.MAX_VALUE, 250));
+        panel.add(scroll);
+
+        return panel;
+    }
     private JPanel creerPanneauRacinesModerne() {
         JPanel panel = new JPanel(new BorderLayout(0, 20));
         panel.setBackground(BG_LIGHT);
@@ -467,7 +507,6 @@ public class MainSwing extends JFrame {
     }
 
     private JPanel creerPanneauSchemesModerne() {
-
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setBackground(BG_LIGHT);
@@ -488,7 +527,7 @@ public class MainSwing extends JFrame {
         rechSchemeField.setToolTipText("ابحث عن وزن | Rechercher un schème");
         searchPanel.add(rechSchemeField, BorderLayout.CENTER);
 
-        JButton rechercherBtn = creerBoutonPrimaire(" بحث | Rechercher");
+        JButton rechercherBtn = creerBoutonPrimaire("🔍 بحث | Rechercher");
         rechercherBtn.setPreferredSize(new Dimension(180, 50));
         rechercherBtn.addActionListener(e -> rechercherScheme());
         searchPanel.add(rechercherBtn, BorderLayout.EAST);
@@ -496,10 +535,11 @@ public class MainSwing extends JFrame {
         card.add(searchPanel);
         card.add(Box.createVerticalStrut(15));
 
-        // Zone de résultats de recherche POUR CE PANNEAU
+        // Zone de résultats de recherche
         outputAreaSchemes = creerZoneResultats();
         outputAreaSchemes.setPreferredSize(new Dimension(0, 80));
         card.add(outputAreaSchemes);
+
 
         panel.add(card);
         panel.add(Box.createVerticalStrut(20));
@@ -520,7 +560,6 @@ public class MainSwing extends JFrame {
 
         return panel;
     }
-
     private JPanel creerCarteScheme(String scheme) {
         JPanel card = creerCarteModerne();
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
@@ -791,7 +830,7 @@ public class MainSwing extends JFrame {
     private JTextArea creerZoneResultats() {
         JTextArea area = new JTextArea(6, 50);
         area.setEditable(false);
-        area.setFont(new Font("Arial Unicode MS", Font.PLAIN, 13));
+        area.setFont(new Font("Arial Unicode MS", Font.BOLD, 15));  // ← BOLD et taille 15
         area.setBackground(new Color(249, 250, 251));
         area.setBorder(new CompoundBorder(
                 new LineBorder(BORDER_COLOR, 1, true),
@@ -799,10 +838,10 @@ public class MainSwing extends JFrame {
         ));
         area.setLineWrap(true);
         area.setWrapStyleWord(true);
-        // CORRECTION: Appliquer l'orientation RTL sur area, pas sur this
         area.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
         return area;
     }
+
 
     private JPanel creerFooter() {
         JPanel panel = new JPanel();
@@ -914,7 +953,23 @@ public class MainSwing extends JFrame {
                             "══════════════════════════════════════════");
         }
     }
+    private void decomposerMot() {
+        String mot = motDecField.getText().trim();
 
+        if (mot.isEmpty()) {
+            afficherErreur(outputAreaDecomposition, "يرجى إدخال كلمة | Veuillez entrer un mot");
+            return;
+        }
+
+        ResultatDecomposition resultat = moteur.decomposerMot(mot);
+
+        afficherSucces(outputAreaDecomposition,
+                "🔬 تحليل مورفولوجي | Décomposition morphologique\n\n" +
+                        "══════════════════════════════════════════\n" +
+                        "الكلمة | Mot: " + mot + "\n\n" +
+                        resultat.toString() + "\n" +
+                        "══════════════════════════════════════════");
+    }
     private void ajouterRacine() {
         String racine = nouvelleRacineField.getText().trim();
 
@@ -1003,7 +1058,7 @@ public class MainSwing extends JFrame {
     // Méthodes utilitaires pour l'affichage
 
     private void afficherSucces(JTextArea area, String message) {
-        area.setForeground(new Color(5, 150, 105));
+        area.setForeground(new Color(0, 64, 48));
         area.setText(message);
     }
 
@@ -1015,6 +1070,7 @@ public class MainSwing extends JFrame {
     private void clearAllOutputs() {
         if (outputAreaGeneration != null) outputAreaGeneration.setText("");
         if (outputAreaValidation != null) outputAreaValidation.setText("");
+        if (outputAreaDecomposition != null) outputAreaDecomposition.setText("");
         if (outputAreaSchemes != null) outputAreaSchemes.setText("");
     }
 
