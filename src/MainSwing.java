@@ -10,12 +10,14 @@ import utils.MoteurMorphologique;
 import utils.MoteurMorphologique.ResultatValidation;
 import utils.MoteurMorphologique.ResultatDecomposition;
 import models.RacineNode;
+import models.Scheme;
 import java.util.List;
 import javax.swing.plaf.basic.BasicScrollBarUI;
 
 /**
  * Interface graphique Swing moderne inspirée du design React
  * Avec gradients, animations douces et design professionnel
+ * VERSION CORRIGÉE - Affichage des résultats fonctionnel
  */
 public class MainSwing extends JFrame {
 
@@ -23,8 +25,13 @@ public class MainSwing extends JFrame {
     private HashTable tableSchemes;
     private MoteurMorphologique moteur;
 
-    private JTextArea outputArea;
-    private JTextField racineField, motField, racineValField, motDecField, rechField, nouvelleRacineField;
+    // Zone de résultats par panneau
+    private JTextArea outputAreaGeneration;
+    private JTextArea outputAreaValidation;
+    private JTextArea outputAreaSchemes;
+
+    private JComboBox<String> racineCombo; // Changé en ComboBox
+    private JTextField motField, racineValField, motDecField, rechField, rechSchemeField, nouvelleRacineField;
     private JComboBox<String> schemeCombo;
 
     private static final String FICHIER_RACINES = "data/racines.txt";
@@ -223,7 +230,8 @@ public class MainSwing extends JFrame {
 
         btn.addActionListener(e -> {
             cardLayout.show(contentPanel, cardName);
-            outputArea.setText("");
+            // Effacer les zones de résultats quand on change d'onglet
+            clearAllOutputs();
         });
 
         btn.addChangeListener(e -> {
@@ -251,12 +259,19 @@ public class MainSwing extends JFrame {
         card.add(header);
         card.add(Box.createVerticalStrut(25));
 
-        // Champ racine
+        // Champ racine - ComboBox au lieu de TextField
         card.add(creerLabelModerne("الجذر (Racine trilitère)"));
         card.add(Box.createVerticalStrut(8));
-        racineField = creerChampTexteArabe();
-        racineField.setToolTipText("مثال: كتب");
-        card.add(racineField);
+        racineCombo = creerComboBoxModerne();
+
+        // Remplir le ComboBox avec toutes les racines disponibles
+        racineCombo.addItem("-- اختر الجذر --");
+        List<String> racines = arbreRacines.getToutesLesRacines();
+        for (String r : racines) {
+            racineCombo.addItem(r);
+        }
+        racineCombo.setToolTipText("اختر جذرا | Choisissez une racine");
+        card.add(racineCombo);
         card.add(Box.createVerticalStrut(20));
 
         // Sélecteur de schème
@@ -276,10 +291,10 @@ public class MainSwing extends JFrame {
         buttonPanel.setBackground(Color.WHITE);
         buttonPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
 
-        JButton genererBtn = creerBoutonPrimaire("✨ توليد | Générer");
+        JButton genererBtn = creerBoutonPrimaire(" توليد | Générer");
         genererBtn.addActionListener(e -> genererMotSpecifique());
 
-        JButton tousBtn = creerBoutonSecondaire("📋 توليد الكل | Tout générer");
+        JButton tousBtn = creerBoutonSecondaire(" توليد الكل | Tout générer");
         tousBtn.addActionListener(e -> genererTousDerivees());
 
         buttonPanel.add(genererBtn);
@@ -289,11 +304,12 @@ public class MainSwing extends JFrame {
         panel.add(card);
         panel.add(Box.createVerticalStrut(20));
 
-        // Zone de résultats
-        outputArea = creerZoneResultats();
-        JScrollPane scroll = new JScrollPane(outputArea);
+        // Zone de résultats POUR CE PANNEAU
+        outputAreaGeneration = creerZoneResultats();
+        JScrollPane scroll = new JScrollPane(outputAreaGeneration);
         scroll.setBorder(null);
-        scroll.setMaximumSize(new Dimension(Integer.MAX_VALUE, 200));
+        scroll.setMaximumSize(new Dimension(Integer.MAX_VALUE, 250));
+        scroll.setPreferredSize(new Dimension(Integer.MAX_VALUE, 250));
         panel.add(scroll);
 
         return panel;
@@ -325,7 +341,7 @@ public class MainSwing extends JFrame {
         card.add(racineValField);
         card.add(Box.createVerticalStrut(25));
 
-        JButton validerBtn = creerBoutonPrimaire("🔍 تحقق | Valider");
+        JButton validerBtn = creerBoutonPrimaire(" تحقق | Valider");
         validerBtn.addActionListener(e -> validerMot());
         validerBtn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
         card.add(validerBtn);
@@ -333,10 +349,12 @@ public class MainSwing extends JFrame {
         panel.add(card);
         panel.add(Box.createVerticalStrut(20));
 
-        outputArea = creerZoneResultats();
-        JScrollPane scroll = new JScrollPane(outputArea);
+        // Zone de résultats POUR CE PANNEAU
+        outputAreaValidation = creerZoneResultats();
+        JScrollPane scroll = new JScrollPane(outputAreaValidation);
         scroll.setBorder(null);
-        scroll.setMaximumSize(new Dimension(Integer.MAX_VALUE, 200));
+        scroll.setMaximumSize(new Dimension(Integer.MAX_VALUE, 250));
+        scroll.setPreferredSize(new Dimension(Integer.MAX_VALUE, 250));
         panel.add(scroll);
 
         return panel;
@@ -362,7 +380,7 @@ public class MainSwing extends JFrame {
         nouvelleRacineField.setToolTipText("جذر جديد");
         addPanel.add(nouvelleRacineField, BorderLayout.CENTER);
 
-        JButton ajouterBtn = creerBoutonPrimaire("➕ إضافة");
+        JButton ajouterBtn = creerBoutonPrimaire(" إضافة");
         ajouterBtn.setPreferredSize(new Dimension(150, 50));
         ajouterBtn.addActionListener(e -> ajouterRacine());
         addPanel.add(ajouterBtn, BorderLayout.EAST);
@@ -449,6 +467,7 @@ public class MainSwing extends JFrame {
     }
 
     private JPanel creerPanneauSchemesModerne() {
+
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setBackground(BG_LIGHT);
@@ -458,6 +477,29 @@ public class MainSwing extends JFrame {
 
         JPanel header = creerEnteteSection("🔧", "الأوزان المورفولوجية | Schèmes morphologiques");
         card.add(header);
+        card.add(Box.createVerticalStrut(20));
+
+        // Panneau de recherche
+        JPanel searchPanel = new JPanel(new BorderLayout(10, 0));
+        searchPanel.setBackground(Color.WHITE);
+        searchPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
+
+        rechSchemeField = creerChampTexteArabe();
+        rechSchemeField.setToolTipText("ابحث عن وزن | Rechercher un schème");
+        searchPanel.add(rechSchemeField, BorderLayout.CENTER);
+
+        JButton rechercherBtn = creerBoutonPrimaire(" بحث | Rechercher");
+        rechercherBtn.setPreferredSize(new Dimension(180, 50));
+        rechercherBtn.addActionListener(e -> rechercherScheme());
+        searchPanel.add(rechercherBtn, BorderLayout.EAST);
+
+        card.add(searchPanel);
+        card.add(Box.createVerticalStrut(15));
+
+        // Zone de résultats de recherche POUR CE PANNEAU
+        outputAreaSchemes = creerZoneResultats();
+        outputAreaSchemes.setPreferredSize(new Dimension(0, 80));
+        card.add(outputAreaSchemes);
 
         panel.add(card);
         panel.add(Box.createVerticalStrut(20));
@@ -488,17 +530,22 @@ public class MainSwing extends JFrame {
         ));
         card.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
+        // Récupérer les informations du schème depuis la table de hachage
+        Scheme schemeObj = tableSchemes.rechercher(scheme);
+        String type = (schemeObj != null) ? schemeObj.getType().toString() : "N/A";
+        String description = (schemeObj != null) ? schemeObj.getDescription() : "Aucune description disponible";
+
         JLabel schemeLabel = new JLabel(scheme);
         schemeLabel.setFont(new Font("Arial Unicode MS", Font.BOLD, 28));
         schemeLabel.setForeground(PRIMARY_GREEN);
         schemeLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel typeLabel = new JLabel("Type: NOM_AGENT");
+        JLabel typeLabel = new JLabel("Type: " + type);
         typeLabel.setFont(new Font("Segoe UI", Font.BOLD, 11));
         typeLabel.setForeground(PRIMARY_GREEN_LIGHT);
         typeLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel descLabel = new JLabel("Description du schème morphologique");
+        JLabel descLabel = new JLabel("<html><div style='width:280px'>" + description + "</div></html>");
         descLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         descLabel.setForeground(TEXT_GRAY);
         descLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -744,7 +791,7 @@ public class MainSwing extends JFrame {
     private JTextArea creerZoneResultats() {
         JTextArea area = new JTextArea(6, 50);
         area.setEditable(false);
-        area.setFont(new Font("Consolas", Font.PLAIN, 13));
+        area.setFont(new Font("Arial Unicode MS", Font.PLAIN, 13));
         area.setBackground(new Color(249, 250, 251));
         area.setBorder(new CompoundBorder(
                 new LineBorder(BORDER_COLOR, 1, true),
@@ -752,6 +799,8 @@ public class MainSwing extends JFrame {
         ));
         area.setLineWrap(true);
         area.setWrapStyleWord(true);
+        // CORRECTION: Appliquer l'orientation RTL sur area, pas sur this
+        area.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
         return area;
     }
 
@@ -781,41 +830,35 @@ public class MainSwing extends JFrame {
     // Méthodes d'action
 
     private void genererMotSpecifique() {
-        String racine = racineField.getText().trim();
+        String racine = (String) racineCombo.getSelectedItem(); // Utiliser ComboBox
         String scheme = (String) schemeCombo.getSelectedItem();
 
-        if (racine.isEmpty() || scheme == null || scheme.equals("-- اختر الوزن --")) {
-            afficherErreur("يرجى ملء جميع الحقول | Veuillez remplir tous les champs");
-            return;
-        }
-
-        if (racine.length() != 3) {
-            afficherErreur("الجذر يجب أن يحتوي على 3 أحرف | La racine doit contenir 3 lettres");
+        if (racine == null || racine.equals("-- اختر الجذر --") ||
+                scheme == null || scheme.equals("-- اختر الوزن --")) {
+            afficherErreur(outputAreaGeneration, "يرجى ملء جميع الحقول | Veuillez remplir tous les champs");
             return;
         }
 
         String motGenere = moteur.genererMotDerive(racine, scheme);
 
         if (motGenere != null) {
-            afficherSucces("✨ توليد | Génération réussie\n\n" +
-                    "الجذر | Racine: " + racine + "\n" +
-                    "الوزن | Schème: " + scheme + "\n" +
-                    "النتيجة | Résultat: " + motGenere);
+            afficherSucces(outputAreaGeneration,
+                    "✨ توليد ناجح | Génération réussie\n\n" +
+                            "══════════════════════════════════════════\n" +
+                            "الجذر | Racine: " + racine + "\n" +
+                            "الوزن | Schème: " + scheme + "\n" +
+                            "النتيجة | Résultat: " + motGenere + "\n" +
+                            "══════════════════════════════════════════");
         } else {
-            afficherErreur("فشل في توليد الكلمة | Échec de génération");
+            afficherErreur(outputAreaGeneration, "فشل في توليد الكلمة | Échec de génération");
         }
     }
 
     private void genererTousDerivees() {
-        String racine = racineField.getText().trim();
+        String racine = (String) racineCombo.getSelectedItem(); // Utiliser ComboBox
 
-        if (racine.isEmpty()) {
-            afficherErreur("يرجى إدخال جذر | Veuillez entrer une racine");
-            return;
-        }
-
-        if (racine.length() != 3) {
-            afficherErreur("الجذر يجب أن يحتوي على 3 أحرف | La racine doit contenir 3 lettres");
+        if (racine == null || racine.equals("-- اختر الجذر --")) {
+            afficherErreur(outputAreaGeneration, "يرجى اختيار جذر | Veuillez choisir une racine");
             return;
         }
 
@@ -823,15 +866,17 @@ public class MainSwing extends JFrame {
 
         if (!derivees.isEmpty()) {
             StringBuilder sb = new StringBuilder();
-            sb.append("📚 جميع المشتقات | Tous les dérivés de: ").append(racine).append("\n\n");
+            sb.append("📚 جميع المشتقات | Tous les dérivés de: ").append(racine).append("\n");
+            sb.append("══════════════════════════════════════════\n\n");
             int count = 1;
             for (String d : derivees) {
                 sb.append(count++).append(". ").append(d).append("\n");
             }
-            sb.append("\nالمجموع | Total: ").append(derivees.size()).append(" مشتق");
-            afficherSucces(sb.toString());
+            sb.append("\n══════════════════════════════════════════\n");
+            sb.append("المجموع | Total: ").append(derivees.size()).append(" مشتق");
+            afficherSucces(outputAreaGeneration, sb.toString());
         } else {
-            afficherErreur("لم يتم العثور على مشتقات | Aucun dérivé trouvé");
+            afficherErreur(outputAreaGeneration, "لم يتم العثور على مشتقات | Aucun dérivé trouvé");
         }
     }
 
@@ -840,27 +885,33 @@ public class MainSwing extends JFrame {
         String racine = racineValField.getText().trim();
 
         if (mot.isEmpty() || racine.isEmpty()) {
-            afficherErreur("يرجى ملء جميع الحقول | Veuillez remplir tous les champs");
+            afficherErreur(outputAreaValidation, "يرجى ملء جميع الحقول | Veuillez remplir tous les champs");
             return;
         }
 
         if (racine.length() != 3) {
-            afficherErreur("الجذر يجب أن يحتوي على 3 أحرف | La racine doit contenir 3 lettres");
+            afficherErreur(outputAreaValidation, "الجذر يجب أن يحتوي على 3 أحرف | La racine doit contenir 3 lettres");
             return;
         }
 
         ResultatValidation resultat = moteur.validerMot(mot, racine);
 
         if (resultat.estValide()) {
-            afficherSucces("✓ صحيح | VALIDE\n\n" +
-                    "الكلمة | Mot: " + mot + "\n" +
-                    "الجذر | Racine: " + racine + "\n\n" +
-                    resultat.toString());
+            afficherSucces(outputAreaValidation,
+                    "✓ صحيح | VALIDE\n\n" +
+                            "══════════════════════════════════════════\n" +
+                            "الكلمة | Mot: " + mot + "\n" +
+                            "الجذر | Racine: " + racine + "\n\n" +
+                            resultat.toString() + "\n" +
+                            "══════════════════════════════════════════");
         } else {
-            afficherErreur("✗ غير صحيح | NON VALIDE\n\n" +
-                    "الكلمة | Mot: " + mot + "\n" +
-                    "الجذر | Racine: " + racine + "\n\n" +
-                    resultat.toString());
+            afficherErreur(outputAreaValidation,
+                    "✗ غير صحيح | NON VALIDE\n\n" +
+                            "══════════════════════════════════════════\n" +
+                            "الكلمة | Mot: " + mot + "\n" +
+                            "الجذر | Racine: " + racine + "\n\n" +
+                            resultat.toString() + "\n" +
+                            "══════════════════════════════════════════");
         }
     }
 
@@ -868,36 +919,103 @@ public class MainSwing extends JFrame {
         String racine = nouvelleRacineField.getText().trim();
 
         if (racine.isEmpty()) {
-            afficherErreur("يرجى إدخال جذر | Veuillez entrer une racine");
+            JOptionPane.showMessageDialog(this,
+                    "يرجى إدخال جذر | Veuillez entrer une racine",
+                    "خطأ | Erreur",
+                    JOptionPane.ERROR_MESSAGE);
             return;
         }
 
         if (racine.length() != 3) {
-            afficherErreur("الجذر يجب أن يحتوي على 3 أحرف | La racine doit contenir 3 lettres");
+            JOptionPane.showMessageDialog(this,
+                    "الجذر يجب أن يحتوي على 3 أحرف | La racine doit contenir 3 lettres",
+                    "خطأ | Erreur",
+                    JOptionPane.ERROR_MESSAGE);
             return;
         }
 
         if (arbreRacines.rechercher(racine) != null) {
-            afficherErreur("الجذر موجود مسبقا | Cette racine existe déjà");
+            JOptionPane.showMessageDialog(this,
+                    "الجذر موجود مسبقا | Cette racine existe déjà",
+                    "تحذير | Avertissement",
+                    JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         arbreRacines.inserer(racine);
         nouvelleRacineField.setText("");
-        afficherSucces("✓ تمت الإضافة | Racine ajoutée: " + racine);
 
-        // Rafraîchir l'affichage
+        // Rafraîchir le ComboBox des racines dans le panneau de génération
+        rafraichirComboRacines();
+
+        JOptionPane.showMessageDialog(this,
+                "✓ تمت الإضافة بنجاح | Racine ajoutée avec succès: " + racine,
+                "نجاح | Succès",
+                JOptionPane.INFORMATION_MESSAGE);
+
+        // Rafraîchir l'affichage en recréant le panneau
+        contentPanel.remove(contentPanel.getComponent(2)); // Remove old racines panel
+        contentPanel.add(creerPanneauRacinesModerne(), "racines", 2);
         cardLayout.show(contentPanel, "racines");
     }
 
-    private void afficherSucces(String message) {
-        outputArea.setForeground(new Color(5, 150, 105));
-        outputArea.setText(message);
+    /**
+     * Rafraîchit le ComboBox des racines après l'ajout d'une nouvelle racine
+     */
+    private void rafraichirComboRacines() {
+        if (racineCombo != null) {
+            racineCombo.removeAllItems();
+            racineCombo.addItem("-- اختر الجذر --");
+            List<String> racines = arbreRacines.getToutesLesRacines();
+            for (String r : racines) {
+                racineCombo.addItem(r);
+            }
+        }
     }
 
-    private void afficherErreur(String message) {
-        outputArea.setForeground(new Color(220, 38, 38));
-        outputArea.setText(message);
+    private void rechercherScheme() {
+        String nom = rechSchemeField.getText().trim();
+
+        if (nom.isEmpty()) {
+            afficherErreur(outputAreaSchemes, "يرجى إدخال اسم الوزن | Veuillez entrer le nom du schème");
+            return;
+        }
+
+        Scheme scheme = tableSchemes.rechercher(nom);
+
+        if (scheme != null) {
+            afficherSucces(outputAreaSchemes,
+                    "✓ وزن موجود | Schème trouvé!\n\n" +
+                            "══════════════════════════════════════════\n" +
+                            "الاسم | Nom: " + scheme.getNom() + "\n" +
+                            "النوع | Type: " + scheme.getType() + "\n" +
+                            "الوصف | Description: " + scheme.getDescription() + "\n" +
+                            "══════════════════════════════════════════");
+        } else {
+            afficherErreur(outputAreaSchemes,
+                    "✗ وزن غير موجود | Schème non trouvé!\n\n" +
+                            "══════════════════════════════════════════\n" +
+                            "الوزن '" + nom + "' غير موجود في النظام\n" +
+                            "══════════════════════════════════════════");
+        }
+    }
+
+    // Méthodes utilitaires pour l'affichage
+
+    private void afficherSucces(JTextArea area, String message) {
+        area.setForeground(new Color(5, 150, 105));
+        area.setText(message);
+    }
+
+    private void afficherErreur(JTextArea area, String message) {
+        area.setForeground(new Color(220, 38, 38));
+        area.setText(message);
+    }
+
+    private void clearAllOutputs() {
+        if (outputAreaGeneration != null) outputAreaGeneration.setText("");
+        if (outputAreaValidation != null) outputAreaValidation.setText("");
+        if (outputAreaSchemes != null) outputAreaSchemes.setText("");
     }
 
     public static void main(String[] args) {

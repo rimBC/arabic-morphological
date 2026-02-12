@@ -264,9 +264,7 @@ public class Main {
             case 2:
                 rechercherScheme();
                 break;
-            case 3:
-                ajouterScheme();
-                break;
+
         }
     }
 
@@ -287,23 +285,6 @@ public class Main {
         }
     }
 
-    /**
-     * Ajoute un schème personnalisé
-     */
-    private static void ajouterScheme() {
-        scanner.nextLine();
-
-        System.out.print("Nom du schème: ");
-        String nom = scanner.nextLine().trim();
-
-        System.out.print("Pattern (ex: فاعل): ");
-        String pattern = scanner.nextLine().trim();
-
-        Scheme scheme = new Scheme(nom, pattern, Scheme.TypeScheme.AUTRE);
-        tableSchemes.ajouter(nom, scheme);
-
-        System.out.println("✓ Schème ajouté avec succès!");
-    }
 
     /**
      * Génère des mots dérivés
