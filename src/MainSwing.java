@@ -147,7 +147,7 @@ public class MainSwing extends JFrame {
 
         // Logo isi GAUCHE
         JPanel logoGauche = creerLogoMU();
-        logoGauche.setPreferredSize(new Dimension(200, 120));
+        logoGauche.setPreferredSize(new Dimension(160, 50));
         panel.add(logoGauche, BorderLayout.WEST);
 
         // Centre avec titres
@@ -206,7 +206,7 @@ public class MainSwing extends JFrame {
                         RenderingHints.VALUE_ANTIALIAS_ON);
 
                 // Calcul de la taille (avec marge)
-                int size = getWidth();
+                int size = getWidth() - 20;
                 int x = (getWidth() - size) / 2;
                 int y = (getHeight() - size) / 2;
 

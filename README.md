@@ -49,23 +49,22 @@ chmod +x compile_and_run.sh
 ## Structure du Projet
 
 ```
-arabic-morphological-engine/
-│
+arabic-morphological/
 ├── src/
-│   ├── RootNode.java              # Nœud de l'arbre (racine + dérivés)
-│   ├── BinarySearchTree.java      # Implémentation de l'ABR
-│   └── ArabicRootBSTDemo.java     # Application de démonstration
-│
+│   ├── models/
+│   │   ├── RacineNode.java      
+│   │   └── Scheme.java          
+│   ├── structures/
+│   │   ├── ABR.java        
+│   │   └── HashTable.java    
+│   ├── utils/
+│   │   ├── ChargeurDonnees.java  
+│   │   └── MoteurMorphologique.java      
+│   ├── Main.java               
+│   └──MainSwing.java          
 ├── data/
-│   └── arabic_roots.txt           # Fichier de racines arabes
-│
-├── docs/
-│   ├── README.md                  # Ce fichier
-│   ├── RAPPORT_TECHNIQUE.md       # Documentation technique
-│   └── GUIDE_UTILISATION.md       # Guide utilisateur détaillé
-│
-├── compile_and_run.sh             # Script de compilation/exécution
-└── .gitignore                     # Fichiers à ignorer
+│   └── racines.txt                # Fichier de racines arabes
+└── README.md                      # Ce fichier
 ```
 
 ---
@@ -77,18 +76,19 @@ arabic-morphological-engine/
 L'application offre un menu interactif :
 
 ```
-╔════════════════════════════════════════╗
-║         MAIN MENU                      ║
-╠════════════════════════════════════════╣
-║ 1. Insert new root                     ║
-║ 2. Search for a root                   ║
-║ 3. Display all roots                   ║
-║ 4. Add derivative to a root            ║
-║ 5. View derivatives of a root          ║
-║ 6. Display statistics                  ║
-║ 7. Test search performance             ║
-║ 0. Exit                                ║
-╚════════════════════════════════════════╝
+╔════════════════════════════════════════════════════╗
+║                   MAIN MENU                        ║
+╠════════════════════════════════════════════════════╣
+║ 1. Gestion des racines                             ║
+║ 2. Gestion des schèmes                             ║
+║ 3. Générer des mots dérivés                        ║
+║ 4. Valider un mot morphologiquement                ║
+║ 5. Décomposer un mot  (trouver racine + schème)    ║
+║ 6. Afficher les dérivés d'une racine               ║
+║ 7. Afficher les statistiques                       ║
+║ 8. Rechercher une racine                           ║
+║ 0. Quitter                                         ║
+╚════════════════════════════════════════════════════╝
 ```
 
 ### Exemples d'Utilisation
@@ -191,25 +191,15 @@ public class Example {
 
 ---
 
-## 📊 Format des Fichiers de Données
+## 🔧 Schèmes Implémentés
 
-### Fichier de Racines (`arabic_roots.txt`)
-
-```
-# Fichier de racines arabes trilitères
-# Les commentaires commencent par #
-# Une racine par ligne, encodage UTF-8
-
-كتب
-درس
-علم
-فهم
-قرأ
-سمع
-نظر
-ذهب
-رجع
-عمل
+| Schème | Type | Description |
+|--------|------|-------------|
+| فاعل | Nom d'agent | Celui qui fait l'action |
+| مفعول | Nom de patient | Celui qui subit l'action |
+| افتعل | Verbe forme VIII | Action intensive |
+| تفعيل | Masdar | Nom d'action |
+| مفعل | Nom de lieu | Lieu de l'action |
 ```
 
 **Règles :**
@@ -257,31 +247,22 @@ Application interactive avec menu.
 
 ### Complexité Algorithmique
 
-| Opération | Complexité (moyenne) | Complexité (pire cas) |
-|-----------|---------------------|----------------------|
-| **Insertion** | O(log n) | O(n) |
-| **Recherche** | O(log n) | O(n) |
-| **Ajout dérivé** | O(log n) + O(1) | O(n) |
-| **Parcours complet** | O(n) | O(n) |
-| **Chargement fichier** | O(n log n) | O(n²) |
+| Opération | Complexité |
+|-----------|-----------|
+| Insertion racine | O(log n) |
+| Recherche racine | O(log n) |
+| Insertion schème | O(1) |
+| Recherche schème | O(1) |
 
-**Note :** Pour garantir O(log n) dans tous les cas, une implémentation **AVL** est prévue dans les futures versions.
+
+
+---
 
 ### Complexité Spatiale
 
 - **Arbre** : O(n) pour n racines
 - **Dérivés** : O(d) où d = nombre total de dérivés
 - **Total** : O(n + d)
-
-### Benchmarks
-
-Tests effectués sur un processeur i7 avec 1000 racines :
-
-```
-Chargement de 1000 racines : ~50 ms
-Recherche moyenne          : ~0.001 ms (1 microseconde)
-Insertion                  : ~0.002 ms
-```
 
 ---
 
@@ -294,6 +275,11 @@ Insertion                  : ~0.002 ms
     - Insertion dynamique de nouvelles racines
     - Validation stricte (3 lettres arabes uniquement)
     - Recherche ultra-rapide
+    - AVL:
+      Auto-équilibrage
+      Garantie O(log n) dans tous les cas
+      Rotations automatiques
+
 
 2. **Gestion des Dérivés**
     - Association automatique racine-dérivés
@@ -310,8 +296,7 @@ Insertion                  : ~0.002 ms
     - Statistiques détaillées
     - Mesure du temps de recherche
 
-### Fonctionnalités à Venir
-
+   
 #### Phase 2 : Table de Hachage pour les Schèmes
 ```java
 PatternHashTable patterns = new PatternHashTable();
@@ -331,10 +316,6 @@ boolean valid = validator.validate("كاتب", "كتب");
 // Résultat : true (كاتب dérive de كتب avec schème فاعل)
 ```
 
-#### Phase 5 : Migration vers AVL
-- Auto-équilibrage
-- Garantie O(log n) dans tous les cas
-- Rotations automatiques
 
 ---
 
@@ -353,36 +334,10 @@ boolean valid = validator.validate("كاتب", "كتب");
 ✓ Validation des racines
 ```
 
-### Tests de Performance
-
-Utilisez l'option **7** du menu pour tester :
-
-```
-Enter number of search iterations: 10000
-=== Performance Test Results ===
-Test root: علم
-Iterations: 10000
-Total time: 12.3456 ms
-Average time per search: 0.001235 ms
 ```
 
 ---
 
-## Dépannage
-
-### Problème : Erreur de compilation "javac: command not found"
-
-**Solution :**
-```bash
-# Ubuntu/Debian
-sudo apt-get install default-jdk
-
-# macOS
-brew install openjdk
-
-# Windows
-# Télécharger depuis oracle.com ou adoptium.net
-```
 
 ### Problème : Caractères arabes affichés incorrectement
 
@@ -403,43 +358,11 @@ pwd
 
 # Utiliser un chemin absolu si nécessaire
 String path = "/chemin/absolu/vers/arabic_roots.txt";
-```
 
-### Problème : Performance lente
-
-**Cause probable :** Arbre déséquilibré (racines insérées en ordre)
-
-**Solution temporaire :** Mélanger les racines avant insertion
-
-**Solution définitive :** Attendre l'implémentation AVL (Phase 5)
 
 ---
 
-## Contribution
 
-### Comment Contribuer
-
-1. **Fork** le projet
-2. Créez une **branche** (`git checkout -b feature/amelioration`)
-3. **Committez** vos changements (`git commit -m 'Ajout fonctionnalité'`)
-4. **Push** vers la branche (`git push origin feature/amelioration`)
-5. Ouvrez une **Pull Request**
-
-### Directives de Contribution
-
-- Suivre le style de code existant
-- Commenter le code en français ou anglais
-- Ajouter des tests pour les nouvelles fonctionnalités
-- Mettre à jour la documentation si nécessaire
-
-### Branches
-
-- `main` - Version stable
-- `develop` - Développement actif
-- `feature/*` - Nouvelles fonctionnalités
-- `bugfix/*` - Corrections de bugs
-
----
 
 ## Documentation
 
@@ -459,17 +382,17 @@ String path = "/chemin/absolu/vers/arabic_roots.txt";
 
 ## Licence
 
-Ce projet a été réalisé dans le cadre académique.
-
-**Département :** Génie Logiciel et Systèmes d'Information (GLSI)  
-**Année universitaire :** 2025-2026  
-**Enseignants :** Narjes Ben Hariz, Sahbi Bahroun
+MIT License — feel free to use for educational purposes.
 
 ---
 
 ## Auteurs
 
-Projet réalisé par les étudiants de **1ING GLSI** dans le cadre du mini-projet d'Algorithmique.
+Ce projet a été réalisé dans le cadre académique du mini-projet d'Algorithmique.
+
+**Année universitaire :** 2025-2026  
+**Enseignants :** Narjes Ben Hariz, Sahbi Bahroun
+**Etudiantes :** Rim Ben Chaalia, Islem Bouchouicha, Nada Mokrane
 
 ---
 
