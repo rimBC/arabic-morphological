@@ -92,9 +92,12 @@ public class HashTable {
         capacite = nouvelleCapacite;
     }
 
-    /**
+/*
+    */
+/**
      * Ajoute ou met à jour un schème dans la table
      */
+
     public void ajouter(String nom, Scheme scheme) {
         if (nom == null || scheme == null) {
             throw new IllegalArgumentException("La clé et le schème ne peuvent pas être null");
@@ -124,6 +127,7 @@ public class HashTable {
         table[index] = nouvelleEntree;
         taille++;
     }
+
 
     /**
      * Recherche un schème par son nom

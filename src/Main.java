@@ -251,7 +251,6 @@ public class Main {
         System.out.println("═".repeat(70));
         System.out.println("1. Afficher tous les schèmes");
         System.out.println("2. Rechercher un schème");
-        System.out.println("3. Ajouter un schème personnalisé");
         System.out.print("\nChoix: ");
 
         int choix = lireChoix();

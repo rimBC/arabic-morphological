@@ -12,12 +12,14 @@ import utils.MoteurMorphologique.ResultatDecomposition;
 import models.RacineNode;
 import models.Scheme;
 import java.util.List;
-import javax.swing.plaf.basic.BasicScrollBarUI;
 
 /**
- * Interface graphique Swing moderne inspirée du design React
- * Avec gradients, animations douces et design professionnel
- * VERSION CORRIGÉE - Affichage des résultats fonctionnel
+ * Interface graphique Swing ultra-moderne
+ * - Scroll principal sur tout le contenu
+ * - Résultats en popup stylés
+ * - Logos Claude de part et d'autre
+ * - Affichage des dérivés au clic sur racine
+ * - Design moderne avec couleurs actualisées
  */
 public class MainSwing extends JFrame {
 
@@ -25,79 +27,81 @@ public class MainSwing extends JFrame {
     private HashTable tableSchemes;
     private MoteurMorphologique moteur;
 
-    // Zone de résultats par panneau
-    private JTextArea outputAreaGeneration;
-    private JTextArea outputAreaValidation;
-    private JTextArea outputAreaDecomposition;
-    private JTextArea outputAreaSchemes;
-
-    private JComboBox<String> racineCombo; // Changé en ComboBox
-    private JTextField racineField, motField, racineValField, motDecField, rechField, rechSchemeField, nouvelleRacineField;
+    private JComboBox<String> racineCombo;
+    private JTextField racineField, motField, racineValField, motDecField, rechSchemeField, nouvelleRacineField;
     private JComboBox<String> schemeCombo;
 
     private static final String FICHIER_RACINES = "data/racines.txt";
 
-    // Couleurs du thème (inspirées du design React)
-    private static final Color PRIMARY_GREEN = new Color(6, 95, 70);
-    private static final Color PRIMARY_GREEN_LIGHT = new Color(16, 185, 129);
-    private static final Color ACCENT_AMBER = new Color(245, 158, 11);
-    private static final Color BG_LIGHT = new Color(236, 253, 245);
+    // Palette de couleurs moderne et professionnelle
+    private static final Color PRIMARY = new Color(99, 102, 241);        // Indigo moderne
+    private static final Color PRIMARY_LIGHT = new Color(129, 140, 248);
+    private static final Color PRIMARY_DARK = new Color(67, 56, 202);
+    private static final Color SECONDARY = new Color(236, 72, 153);      // Rose vibrant
+    private static final Color ACCENT = new Color(59, 130, 246);         // Bleu ciel
+    private static final Color SUCCESS = new Color(34, 197, 94);         // Vert moderne
+    private static final Color WARNING = new Color(251, 146, 60);        // Orange
+    private static final Color ERROR = new Color(239, 68, 68);           // Rouge
+
+    private static final Color BG_PRIMARY = new Color(248, 250, 252);    // Gris très clair
+    private static final Color BG_SECONDARY = Color.WHITE;
     private static final Color BG_CARD = Color.WHITE;
-    private static final Color TEXT_DARK = new Color(17, 24, 39);
-    private static final Color TEXT_GRAY = new Color(107, 114, 128);
-    private static final Color BORDER_COLOR = new Color(209, 250, 229);
+
+    private static final Color TEXT_PRIMARY = new Color(15, 23, 42);     // Slate foncé
+    private static final Color TEXT_SECONDARY = new Color(100, 116, 139);
+    private static final Color TEXT_MUTED = new Color(148, 163, 184);
+
+    private static final Color BORDER = new Color(226, 232, 240);
+    private static final Color BORDER_FOCUS = PRIMARY_LIGHT;
 
     private CardLayout cardLayout;
     private JPanel contentPanel;
+    private JPanel mainScrollablePanel;
 
     public MainSwing() {
         super("محرك البحث المورفولوجي العربي - Moteur Morphologique Arabe");
 
-        // Initialiser les données
         initialiserDonnees();
-
-        // Configuration de la fenêtre
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(1200, 850);
+        setSize(1400, 900);
         setLocationRelativeTo(null);
 
-        // Style moderne
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        // Créer l'interface
         creerInterface();
     }
 
     private void initialiserDonnees() {
         arbreRacines = new ABR();
         tableSchemes = new HashTable();
-
         ChargeurDonnees.creerFichierExemple(FICHIER_RACINES);
         ChargeurDonnees.chargerRacinesDepuisFichier(FICHIER_RACINES, arbreRacines);
         ChargeurDonnees.initialiserSchemes(tableSchemes);
-
         moteur = new MoteurMorphologique(arbreRacines, tableSchemes);
     }
 
     private void creerInterface() {
         setLayout(new BorderLayout(0, 0));
-        getContentPane().setBackground(BG_LIGHT);
+        getContentPane().setBackground(BG_PRIMARY);
 
-        // En-tête avec gradient
-        add(creerEnteteModerne(), BorderLayout.NORTH);
+        // En-tête avec logos Claude
+        add(creerEnteteAvecLogos(), BorderLayout.NORTH);
 
-        // Navigation moderne
+        // Navigation latérale
         add(creerNavigationModerne(), BorderLayout.WEST);
 
-        // Contenu central avec CardLayout
+        // Panel principal SCROLLABLE
+        mainScrollablePanel = new JPanel();
+        mainScrollablePanel.setLayout(new BorderLayout());
+        mainScrollablePanel.setBackground(BG_PRIMARY);
+
         cardLayout = new CardLayout();
         contentPanel = new JPanel(cardLayout);
-        contentPanel.setBackground(BG_LIGHT);
-        contentPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
+        contentPanel.setBackground(BG_PRIMARY);
 
         contentPanel.add(creerPanneauGenerationModerne(), "generation");
         contentPanel.add(creerPanneauValidationModerne(), "validation");
@@ -106,13 +110,22 @@ public class MainSwing extends JFrame {
         contentPanel.add(creerPanneauSchemesModerne(), "schemes");
         contentPanel.add(creerPanneauStatistiquesModerne(), "stats");
 
-        add(contentPanel, BorderLayout.CENTER);
+        mainScrollablePanel.add(contentPanel, BorderLayout.CENTER);
 
-        // Footer moderne
+        // SCROLL sur tout le contenu
+        JScrollPane mainScroll = new JScrollPane(mainScrollablePanel);
+        mainScroll.setBorder(null);
+        mainScroll.getVerticalScrollBar().setUnitIncrement(16);
+        mainScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+
+        add(mainScroll, BorderLayout.CENTER);
         add(creerFooter(), BorderLayout.SOUTH);
     }
 
-    private JPanel creerEnteteModerne() {
+    /**
+     * En-tête avec logos Claude de part et d'autre
+     */
+    private JPanel creerEnteteAvecLogos() {
         JPanel panel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -120,72 +133,137 @@ public class MainSwing extends JFrame {
                 Graphics2D g2d = (Graphics2D) g;
                 g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 
-                // Gradient vert émeraude
+                // Gradient moderne indigo -> violet
                 GradientPaint gp = new GradientPaint(
-                        0, 0, PRIMARY_GREEN,
-                        getWidth(), 0, new Color(4, 120, 87)
+                        0, 0, PRIMARY_DARK,
+                        getWidth(), getHeight(), new Color(126, 34, 206)
                 );
                 g2d.setPaint(gp);
                 g2d.fillRect(0, 0, getWidth(), getHeight());
 
-                // Cercle décoratif
-                g2d.setColor(new Color(245, 158, 11, 25));
-                g2d.fillOval(getWidth() - 200, -100, 300, 300);
+                // Formes décoratives
+                g2d.setColor(new Color(255, 255, 255, 15));
+                g2d.fillOval(-100, -50, 300, 300);
+                g2d.fillOval(getWidth() - 200, -100, 350, 350);
             }
         };
 
-        panel.setPreferredSize(new Dimension(0, 140));
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBorder(new EmptyBorder(30, 40, 30, 40));
+        panel.setPreferredSize(new Dimension(0, 160));
+        panel.setLayout(new BorderLayout());
+        panel.setBorder(new EmptyBorder(20, 40, 20, 40));
 
-        // Titre arabe
+        // Logo Claude GAUCHE
+        JPanel logoGauche = creerLogoClaude();
+        logoGauche.setPreferredSize(new Dimension(120, 120));
+        panel.add(logoGauche, BorderLayout.WEST);
+
+        // Centre avec titres
+        JPanel centre = new JPanel();
+        centre.setLayout(new BoxLayout(centre, BoxLayout.Y_AXIS));
+        centre.setOpaque(false);
+
         JLabel titreArabe = new JLabel("محرك البحث المورفولوجي العربي");
-        titreArabe.setFont(new Font("Arial Unicode MS", Font.BOLD, 36));
+        titreArabe.setFont(new Font("Arial Unicode MS", Font.BOLD, 38));
         titreArabe.setForeground(Color.WHITE);
         titreArabe.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // Sous-titre français
-        JLabel sousTitre = new JLabel("Moteur de Recherche Morphologique et Générateur de Dérivation Arabe");
-        sousTitre.setFont(new Font("Segoe UI", Font.PLAIN, 16));
-        sousTitre.setForeground(new Color(255, 255, 255, 230));
+        JLabel sousTitre = new JLabel("Moteur de Recherche Morphologique Arabe");
+        sousTitre.setFont(new Font("Segoe UI", Font.PLAIN, 17));
+        sousTitre.setForeground(new Color(255, 255, 255, 220));
         sousTitre.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        panel.add(Box.createVerticalGlue());
-        panel.add(titreArabe);
-        panel.add(Box.createVerticalStrut(10));
-        panel.add(sousTitre);
-        panel.add(Box.createVerticalGlue());
+        JLabel powered = new JLabel("Powered by Claude AI");
+        powered.setFont(new Font("Segoe UI", Font.ITALIC, 12));
+        powered.setForeground(new Color(255, 255, 255, 180));
+        powered.setAlignmentX(Component.CENTER_ALIGNMENT);
 
+        centre.add(Box.createVerticalGlue());
+        centre.add(titreArabe);
+        centre.add(Box.createVerticalStrut(8));
+        centre.add(sousTitre);
+        centre.add(Box.createVerticalStrut(5));
+        centre.add(powered);
+        centre.add(Box.createVerticalGlue());
+
+        panel.add(centre, BorderLayout.CENTER);
+
+        // Logo Claude DROITE
+        JPanel logoDroit = creerLogoClaude();
+        logoDroit.setPreferredSize(new Dimension(120, 120));
+        panel.add(logoDroit, BorderLayout.EAST);
+
+        return panel;
+    }
+
+    /**
+     * Créer un logo Claude stylisé
+     */
+    private JPanel creerLogoClaude() {
+        JPanel panel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                int size = Math.min(getWidth(), getHeight()) - 20;
+                int x = (getWidth() - size) / 2;
+                int y = (getHeight() - size) / 2;
+
+                // Cercle de fond avec gradient
+                GradientPaint circle = new GradientPaint(
+                        x, y, new Color(255, 255, 255, 200),
+                        x + size, y + size, new Color(255, 255, 255, 100)
+                );
+                g2d.setPaint(circle);
+                g2d.fillOval(x, y, size, size);
+
+                // Bordure
+                g2d.setColor(new Color(255, 255, 255, 150));
+                g2d.setStroke(new BasicStroke(3));
+                g2d.drawOval(x, y, size, size);
+
+                // Logo "C" stylisé au centre
+                g2d.setColor(PRIMARY_DARK);
+                g2d.setFont(new Font("Segoe UI", Font.BOLD, size / 2));
+                FontMetrics fm = g2d.getFontMetrics();
+                String text = "C";
+                int textX = x + (size - fm.stringWidth(text)) / 2;
+                int textY = y + ((size - fm.getHeight()) / 2) + fm.getAscent();
+                g2d.drawString(text, textX, textY);
+            }
+        };
+        panel.setOpaque(false);
         return panel;
     }
 
     private JPanel creerNavigationModerne() {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBackground(Color.WHITE);
-        panel.setPreferredSize(new Dimension(260, 0));
+        panel.setBackground(BG_SECONDARY);
+        panel.setPreferredSize(new Dimension(280, 0));
         panel.setBorder(new CompoundBorder(
-                new MatteBorder(0, 0, 0, 1, BORDER_COLOR),
-                new EmptyBorder(30, 15, 30, 15)
+                new MatteBorder(0, 0, 0, 1, BORDER),
+                new EmptyBorder(25, 20, 25, 20)
         ));
 
         String[][] tabs = {
-                {"🔄", "التوليد | Génération", "generation"},
-                {"✓", "التحقق | Validation", "validation"},
-                {"🔬", "التحليل | Décomposition", "decomposition"},
-                {"📚", "الجذور | Racines", "racines"},
-                {"🔧", "الأوزان | Schèmes", "schemes"},
-                {"📊", "الإحصائيات | Stats", "stats"}
+                {"🔄", "التوليد", "Génération", "generation"},
+                {"✓", "التحقق", "Validation", "validation"},
+                {"🔬", "التحليل", "Décomposition", "decomposition"},
+                {"📚", "الجذور", "Racines", "racines"},
+                {"🔧", "الأوزان", "Schèmes", "schemes"},
+                {"📊", "الإحصائيات", "Statistiques", "stats"}
         };
 
         ButtonGroup group = new ButtonGroup();
         boolean first = true;
 
         for (String[] tab : tabs) {
-            JToggleButton btn = creerBoutonNavigation(tab[0], tab[1], tab[2]);
+            JToggleButton btn = creerBoutonNavigation(tab[0], tab[1], tab[2], tab[3]);
             group.add(btn);
             panel.add(btn);
-            panel.add(Box.createVerticalStrut(10));
+            panel.add(Box.createVerticalStrut(8));
 
             if (first) {
                 btn.setSelected(true);
@@ -194,54 +272,76 @@ public class MainSwing extends JFrame {
         }
 
         panel.add(Box.createVerticalGlue());
-
         return panel;
     }
 
-    private JToggleButton creerBoutonNavigation(String icon, String text, String cardName) {
-        JToggleButton btn = new JToggleButton("<html><div style='padding:5px'>" +
-                "<span style='font-size:18px'>" + icon + "</span> " +
-                "<span style='font-size:11px'>" + text + "</span></div></html>") {
+    private JToggleButton creerBoutonNavigation(String icon, String arabe, String francais, String cardName) {
+        JToggleButton btn = new JToggleButton() {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2d = (Graphics2D) g;
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
                 if (isSelected()) {
-                    GradientPaint gp = new GradientPaint(0, 0, PRIMARY_GREEN, getWidth(), 0,
-                            new Color(4, 120, 87));
+                    GradientPaint gp = new GradientPaint(0, 0, PRIMARY, getWidth(), 0, PRIMARY_LIGHT);
                     g2d.setPaint(gp);
-                    g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
+                    g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
+
+                    // Ombre portée
+                    g2d.setColor(new Color(0, 0, 0, 30));
+                    g2d.fillRoundRect(2, 2, getWidth(), getHeight(), 15, 15);
                 } else if (getModel().isRollover()) {
-                    g2d.setColor(new Color(236, 253, 245));
-                    g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
+                    g2d.setColor(new Color(241, 245, 249));
+                    g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
                 }
 
                 super.paintComponent(g);
             }
         };
 
-        btn.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        btn.setForeground(TEXT_DARK);
-        btn.setHorizontalAlignment(SwingConstants.LEFT);
-        btn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
-        btn.setPreferredSize(new Dimension(230, 50));
-        btn.setFocusPainted(false);
-        btn.setBorderPainted(false);
+        btn.setLayout(new BorderLayout(12, 0));
+        btn.setBorder(new EmptyBorder(15, 18, 15, 18));
+        btn.setOpaque(false);
         btn.setContentAreaFilled(false);
+        btn.setBorderPainted(false);
+        btn.setFocusPainted(false);
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
 
-        btn.addActionListener(e -> {
-            cardLayout.show(contentPanel, cardName);
-            // Effacer les zones de résultats quand on change d'onglet
-            clearAllOutputs();
-        });
+        // Icône
+        JLabel iconLabel = new JLabel(icon);
+        iconLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 22));
+        iconLabel.setPreferredSize(new Dimension(30, 30));
+        btn.add(iconLabel, BorderLayout.WEST);
+
+        // Texte
+        JPanel textPanel = new JPanel();
+        textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.Y_AXIS));
+        textPanel.setOpaque(false);
+
+        JLabel arabeLabel = new JLabel(arabe);
+        arabeLabel.setFont(new Font("Arial Unicode MS", Font.BOLD, 13));
+        arabeLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JLabel frLabel = new JLabel(francais);
+        frLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        frLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        textPanel.add(arabeLabel);
+        textPanel.add(frLabel);
+        btn.add(textPanel, BorderLayout.CENTER);
+
+        btn.addActionListener(e -> cardLayout.show(contentPanel, cardName));
 
         btn.addChangeListener(e -> {
             if (btn.isSelected()) {
-                btn.setForeground(Color.WHITE);
+                iconLabel.setForeground(Color.WHITE);
+                arabeLabel.setForeground(Color.WHITE);
+                frLabel.setForeground(new Color(255, 255, 255, 200));
             } else {
-                btn.setForeground(TEXT_DARK);
+                iconLabel.setForeground(TEXT_PRIMARY);
+                arabeLabel.setForeground(TEXT_PRIMARY);
+                frLabel.setForeground(TEXT_SECONDARY);
             }
         });
 
@@ -251,53 +351,49 @@ public class MainSwing extends JFrame {
     private JPanel creerPanneauGenerationModerne() {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBackground(BG_LIGHT);
+        panel.setBackground(BG_PRIMARY);
+        panel.setBorder(new EmptyBorder(30, 40, 30, 40));
 
-        // Carte principale
         JPanel card = creerCarteModerne();
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
 
-        // En-tête de la carte
-        JPanel header = creerEnteteSection("🔄", "توليد الكلمات المشتقة | Génération de mots dérivés");
+        JPanel header = creerEnteteSection("🔄", "توليد الكلمات المشتقة", "Génération de mots dérivés");
         card.add(header);
-        card.add(Box.createVerticalStrut(25));
+        card.add(Box.createVerticalStrut(30));
 
-        // Champ racine - ComboBox au lieu de TextField
-        card.add(creerLabelModerne("الجذر (Racine trilitère)"));
-        card.add(Box.createVerticalStrut(8));
+        // Racine
+        card.add(creerLabelModerne("الجذر | Racine trilitère"));
+        card.add(Box.createVerticalStrut(10));
         racineCombo = creerComboBoxModerne();
-
-        // Remplir le ComboBox avec toutes les racines disponibles
-        racineCombo.addItem("-- اختر الجذر --");
+        racineCombo.addItem("-- اختر الجذر | Choisir --");
         List<String> racines = arbreRacines.getToutesLesRacines();
         for (String r : racines) {
             racineCombo.addItem(r);
         }
-        racineCombo.setToolTipText("اختر جذرا | Choisissez une racine");
         card.add(racineCombo);
         card.add(Box.createVerticalStrut(20));
 
-        // Sélecteur de schème
-        card.add(creerLabelModerne("الوزن (Schème morphologique)"));
-        card.add(Box.createVerticalStrut(8));
+        // Schème
+        card.add(creerLabelModerne("الوزن | Schème morphologique"));
+        card.add(Box.createVerticalStrut(10));
         schemeCombo = creerComboBoxModerne();
         List<String> schemes = tableSchemes.getTousLesNoms();
-        schemeCombo.addItem("-- اختر الوزن --");
+        schemeCombo.addItem("-- اختر الوزن | Choisir --");
         for (String s : schemes) {
             schemeCombo.addItem(s);
         }
         card.add(schemeCombo);
-        card.add(Box.createVerticalStrut(25));
+        card.add(Box.createVerticalStrut(30));
 
         // Boutons
-        JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 15, 0));
+        JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 20, 0));
         buttonPanel.setBackground(Color.WHITE);
-        buttonPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
+        buttonPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 55));
 
         JButton genererBtn = creerBoutonPrimaire(" توليد | Générer");
         genererBtn.addActionListener(e -> genererMotSpecifique());
 
-        JButton tousBtn = creerBoutonSecondaire(" توليد الكل | Tout générer");
+        JButton tousBtn = creerBoutonSecondaire(" الكل | Tout");
         tousBtn.addActionListener(e -> genererTousDerivees());
 
         buttonPanel.add(genererBtn);
@@ -305,147 +401,121 @@ public class MainSwing extends JFrame {
         card.add(buttonPanel);
 
         panel.add(card);
-        panel.add(Box.createVerticalStrut(20));
-
-        // Zone de résultats POUR CE PANNEAU
-        outputAreaGeneration = creerZoneResultats();
-        JScrollPane scroll = new JScrollPane(outputAreaGeneration);
-        scroll.setBorder(null);
-        scroll.setMaximumSize(new Dimension(Integer.MAX_VALUE, 250));
-        scroll.setPreferredSize(new Dimension(Integer.MAX_VALUE, 250));
-        panel.add(scroll);
-
         return panel;
     }
 
     private JPanel creerPanneauValidationModerne() {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBackground(BG_LIGHT);
+        panel.setBackground(BG_PRIMARY);
+        panel.setBorder(new EmptyBorder(30, 40, 30, 40));
 
         JPanel card = creerCarteModerne();
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
 
-        JPanel header = creerEnteteSection("✓", "التحقق المورفولوجي | Validation morphologique");
+        JPanel header = creerEnteteSection("✓", "التحقق المورفولوجي", "Validation morphologique");
         card.add(header);
-        card.add(Box.createVerticalStrut(25));
+        card.add(Box.createVerticalStrut(30));
 
-        card.add(creerLabelModerne("الكلمة (Mot à valider)"));
-        card.add(Box.createVerticalStrut(8));
+        card.add(creerLabelModerne("الكلمة | Mot à valider"));
+        card.add(Box.createVerticalStrut(10));
         motField = creerChampTexteArabe();
         motField.setToolTipText("مثال: كاتب");
         card.add(motField);
         card.add(Box.createVerticalStrut(20));
 
-        card.add(creerLabelModerne("الجذر (Racine)"));
-        card.add(Box.createVerticalStrut(8));
+        card.add(creerLabelModerne("الجذر | Racine"));
+        card.add(Box.createVerticalStrut(10));
         racineValField = creerChampTexteArabe();
         racineValField.setToolTipText("مثال: كتب");
         card.add(racineValField);
-        card.add(Box.createVerticalStrut(25));
+        card.add(Box.createVerticalStrut(30));
 
         JButton validerBtn = creerBoutonPrimaire(" تحقق | Valider");
         validerBtn.addActionListener(e -> validerMot());
-        validerBtn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
+        validerBtn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 55));
         card.add(validerBtn);
 
         panel.add(card);
-        panel.add(Box.createVerticalStrut(20));
-
-        // Zone de résultats POUR CE PANNEAU
-        outputAreaValidation = creerZoneResultats();
-        JScrollPane scroll = new JScrollPane(outputAreaValidation);
-        scroll.setBorder(null);
-        scroll.setMaximumSize(new Dimension(Integer.MAX_VALUE, 250));
-        scroll.setPreferredSize(new Dimension(Integer.MAX_VALUE, 250));
-        panel.add(scroll);
-
         return panel;
     }
+
     private JPanel creerPanneauDecompositionModerne() {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBackground(BG_LIGHT);
+        panel.setBackground(BG_PRIMARY);
+        panel.setBorder(new EmptyBorder(30, 40, 30, 40));
 
         JPanel card = creerCarteModerne();
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
 
-        JPanel header = creerEnteteSection("🔬", "التحليل المورفولوجي | Décomposition morphologique");
+        JPanel header = creerEnteteSection("🔬", "التحليل المورفولوجي", "Décomposition morphologique");
         card.add(header);
-        card.add(Box.createVerticalStrut(25));
+        card.add(Box.createVerticalStrut(30));
 
-        card.add(creerLabelModerne("الكلمة (Mot à décomposer)"));
-        card.add(Box.createVerticalStrut(8));
+        card.add(creerLabelModerne("الكلمة | Mot à décomposer"));
+        card.add(Box.createVerticalStrut(10));
         motDecField = creerChampTexteArabe();
         motDecField.setToolTipText("مثال: كاتب");
         card.add(motDecField);
-        card.add(Box.createVerticalStrut(25));
+        card.add(Box.createVerticalStrut(30));
 
-        JButton decomposerBtn = creerBoutonPrimaire("🔬 تحليل | Décomposer");
+        JButton decomposerBtn = creerBoutonPrimaire(" تحليل | Décomposer");
         decomposerBtn.addActionListener(e -> decomposerMot());
-        decomposerBtn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
+        decomposerBtn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 55));
         card.add(decomposerBtn);
 
         panel.add(card);
-        panel.add(Box.createVerticalStrut(20));
-
-        // Zone de résultats POUR CE PANNEAU
-        // Zone de résultats POUR CE PANNEAU
-        outputAreaDecomposition = creerZoneResultats();  // ← SANS "JTextArea" au début
-        JScrollPane scroll = new JScrollPane(outputAreaDecomposition);
-        scroll.setBorder(null);
-        scroll.setMaximumSize(new Dimension(Integer.MAX_VALUE, 250));
-        scroll.setPreferredSize(new Dimension(Integer.MAX_VALUE, 250));
-        panel.add(scroll);
-
         return panel;
     }
+
     private JPanel creerPanneauRacinesModerne() {
-        JPanel panel = new JPanel(new BorderLayout(0, 20));
-        panel.setBackground(BG_LIGHT);
+        JPanel panel = new JPanel(new BorderLayout(0, 25));
+        panel.setBackground(BG_PRIMARY);
+        panel.setBorder(new EmptyBorder(30, 40, 30, 40));
 
         JPanel card = creerCarteModerne();
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
 
-        JPanel header = creerEnteteSection("📚", "إدارة الجذور | Gestion des racines");
+        JPanel header = creerEnteteSection("📚", "إدارة الجذور", "Gestion des racines");
         card.add(header);
-        card.add(Box.createVerticalStrut(20));
+        card.add(Box.createVerticalStrut(25));
 
-        // Ajouter une racine
-        JPanel addPanel = new JPanel(new BorderLayout(10, 0));
+        // Panneau d'ajout
+        JPanel addPanel = new JPanel(new BorderLayout(15, 0));
         addPanel.setBackground(Color.WHITE);
-        addPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
+        addPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 55));
 
         nouvelleRacineField = creerChampTexteArabe();
-        nouvelleRacineField.setToolTipText("جذر جديد");
+        nouvelleRacineField.setToolTipText("جذر جديد | Nouvelle racine");
         addPanel.add(nouvelleRacineField, BorderLayout.CENTER);
 
         JButton ajouterBtn = creerBoutonPrimaire(" إضافة");
-        ajouterBtn.setPreferredSize(new Dimension(150, 50));
+        ajouterBtn.setPreferredSize(new Dimension(160, 55));
         ajouterBtn.addActionListener(e -> ajouterRacine());
         addPanel.add(ajouterBtn, BorderLayout.EAST);
 
         card.add(addPanel);
-
         panel.add(card, BorderLayout.NORTH);
 
         // Grille de racines
-        JPanel gridPanel = new JPanel(new GridLayout(0, 5, 15, 15));
-        gridPanel.setBackground(BG_LIGHT);
+        JPanel gridPanel = new JPanel(new GridLayout(0, 6, 18, 18));
+        gridPanel.setBackground(BG_PRIMARY);
 
         List<String> racines = arbreRacines.getToutesLesRacines();
         for (String racine : racines) {
             gridPanel.add(creerCarteRacine(racine));
         }
 
-        JScrollPane scroll = new JScrollPane(gridPanel);
-        scroll.setBorder(null);
-        scroll.getVerticalScrollBar().setUnitIncrement(16);
-        panel.add(scroll, BorderLayout.CENTER);
+        // Pas de scroll ici, le scroll est sur le panel principal
+        panel.add(gridPanel, BorderLayout.CENTER);
 
         return panel;
     }
 
+    /**
+     * Carte racine cliquable qui affiche les dérivés dans un popup
+     */
     private JPanel creerCarteRacine(String racine) {
         JPanel card = new JPanel() {
             @Override
@@ -453,160 +523,225 @@ public class MainSwing extends JFrame {
                 Graphics2D g2d = (Graphics2D) g;
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-                // Gradient subtil
+                // Gradient moderne
                 GradientPaint gp = new GradientPaint(
-                        0, 0, new Color(236, 253, 245),
-                        getWidth(), getHeight(), new Color(254, 243, 199)
+                        0, 0, new Color(241, 245, 249),
+                        getWidth(), getHeight(), new Color(249, 250, 251)
                 );
                 g2d.setPaint(gp);
-                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
+                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
 
                 // Bordure
-                g2d.setColor(BORDER_COLOR);
+                g2d.setColor(BORDER);
                 g2d.setStroke(new BasicStroke(2));
-                g2d.drawRoundRect(1, 1, getWidth()-2, getHeight()-2, 15, 15);
+                g2d.drawRoundRect(1, 1, getWidth()-2, getHeight()-2, 20, 20);
             }
         };
 
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-        card.setBorder(new EmptyBorder(20, 15, 20, 15));
+        card.setBorder(new EmptyBorder(25, 20, 25, 20));
         card.setCursor(new Cursor(Cursor.HAND_CURSOR));
         card.setOpaque(false);
-        card.setPreferredSize(new Dimension(150, 120));
+        card.setPreferredSize(new Dimension(140, 130));
 
         JLabel racineLabel = new JLabel(racine);
-        racineLabel.setFont(new Font("Arial Unicode MS", Font.BOLD, 32));
-        racineLabel.setForeground(PRIMARY_GREEN);
+        racineLabel.setFont(new Font("Arial Unicode MS", Font.BOLD, 36));
+        racineLabel.setForeground(PRIMARY);
         racineLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JLabel countLabel = new JLabel("0 مشتق");
-        countLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        countLabel.setForeground(TEXT_GRAY);
+        // Compter les dérivés
+        List<String> derives = moteur.genererTousLesDerivees(racine);
+        JLabel countLabel = new JLabel(derives.size() + " مشتق");
+        countLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        countLabel.setForeground(TEXT_SECONDARY);
         countLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         card.add(Box.createVerticalGlue());
         card.add(racineLabel);
-        card.add(Box.createVerticalStrut(5));
+        card.add(Box.createVerticalStrut(8));
         card.add(countLabel);
         card.add(Box.createVerticalGlue());
 
-        // Effet hover
+        // Clic pour afficher les dérivés dans un popup
         card.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) {
+                afficherDerivesPopup(racine, derives);
+            }
             public void mouseEntered(MouseEvent e) {
                 card.setBorder(new CompoundBorder(
-                        new LineBorder(PRIMARY_GREEN_LIGHT, 2, true),
-                        new EmptyBorder(19, 14, 19, 14)
+                        new LineBorder(PRIMARY, 3, true),
+                        new EmptyBorder(24, 19, 24, 19)
                 ));
             }
             public void mouseExited(MouseEvent e) {
-                card.setBorder(new EmptyBorder(20, 15, 20, 15));
+                card.setBorder(new EmptyBorder(25, 20, 25, 20));
             }
         });
 
         return card;
     }
 
+    /**
+     * Affiche un popup moderne avec tous les dérivés d'une racine
+     */
+    private void afficherDerivesPopup(String racine, List<String> derives) {
+        JDialog dialog = new JDialog(this, "المشتقات | Dérivés de: " + racine, true);
+        dialog.setSize(600, 500);
+        dialog.setLocationRelativeTo(this);
+
+        JPanel mainPanel = new JPanel(new BorderLayout(0, 20));
+        mainPanel.setBackground(Color.WHITE);
+        mainPanel.setBorder(new EmptyBorder(25, 25, 25, 25));
+
+        // En-tête du popup
+        JPanel headerPanel = new JPanel();
+        headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
+        headerPanel.setBackground(Color.WHITE);
+
+        JLabel racineLabel = new JLabel(racine);
+        racineLabel.setFont(new Font("Arial Unicode MS", Font.BOLD, 48));
+        racineLabel.setForeground(PRIMARY);
+        racineLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JLabel countLabel = new JLabel(derives.size() + " مشتقات موجودة | dérivés trouvés");
+        countLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        countLabel.setForeground(TEXT_SECONDARY);
+        countLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        headerPanel.add(racineLabel);
+        headerPanel.add(Box.createVerticalStrut(5));
+        headerPanel.add(countLabel);
+
+        mainPanel.add(headerPanel, BorderLayout.NORTH);
+
+        // Liste des dérivés dans une grille
+        JPanel gridPanel = new JPanel(new GridLayout(0, 2, 15, 15));
+        gridPanel.setBackground(Color.WHITE);
+
+        for (String derive : derives) {
+            JPanel deriveCard = new JPanel();
+            deriveCard.setBackground(new Color(241, 245, 249));
+            deriveCard.setBorder(new CompoundBorder(
+                    new LineBorder(BORDER, 1, true),
+                    new EmptyBorder(15, 20, 15, 20)
+            ));
+            deriveCard.setLayout(new BorderLayout());
+
+            JLabel deriveLabel = new JLabel(derive);
+            deriveLabel.setFont(new Font("Arial Unicode MS", Font.BOLD, 24));
+            deriveLabel.setForeground(TEXT_PRIMARY);
+            deriveLabel.setHorizontalAlignment(SwingConstants.CENTER);
+
+            deriveCard.add(deriveLabel);
+            gridPanel.add(deriveCard);
+        }
+
+        JScrollPane scroll = new JScrollPane(gridPanel);
+        scroll.setBorder(null);
+        scroll.getVerticalScrollBar().setUnitIncrement(16);
+        mainPanel.add(scroll, BorderLayout.CENTER);
+
+        // Bouton fermer
+        JButton closeBtn = creerBoutonPrimaire("✖ إغلاق | Fermer");
+        closeBtn.addActionListener(e -> dialog.dispose());
+        mainPanel.add(closeBtn, BorderLayout.SOUTH);
+
+        dialog.add(mainPanel);
+        dialog.setVisible(true);
+    }
+
     private JPanel creerPanneauSchemesModerne() {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBackground(BG_LIGHT);
+        panel.setBackground(BG_PRIMARY);
+        panel.setBorder(new EmptyBorder(30, 40, 30, 40));
 
         JPanel card = creerCarteModerne();
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
 
-        JPanel header = creerEnteteSection("🔧", "الأوزان المورفولوجية | Schèmes morphologiques");
+        JPanel header = creerEnteteSection("🔧", "الأوزان المورفولوجية", "Schèmes morphologiques");
         card.add(header);
-        card.add(Box.createVerticalStrut(20));
+        card.add(Box.createVerticalStrut(25));
 
         // Panneau de recherche
-        JPanel searchPanel = new JPanel(new BorderLayout(10, 0));
+        JPanel searchPanel = new JPanel(new BorderLayout(15, 0));
         searchPanel.setBackground(Color.WHITE);
-        searchPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
+        searchPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 55));
 
         rechSchemeField = creerChampTexteArabe();
-        rechSchemeField.setToolTipText("ابحث عن وزن | Rechercher un schème");
+        rechSchemeField.setToolTipText("ابحث عن وزن | Rechercher");
         searchPanel.add(rechSchemeField, BorderLayout.CENTER);
 
-        JButton rechercherBtn = creerBoutonPrimaire("🔍 بحث | Rechercher");
-        rechercherBtn.setPreferredSize(new Dimension(180, 50));
+        JButton rechercherBtn = creerBoutonPrimaire(" بحث | Rechercher");
+        rechercherBtn.setPreferredSize(new Dimension(200, 55));
         rechercherBtn.addActionListener(e -> rechercherScheme());
         searchPanel.add(rechercherBtn, BorderLayout.EAST);
 
         card.add(searchPanel);
-        card.add(Box.createVerticalStrut(15));
-
-        // Zone de résultats de recherche
-        outputAreaSchemes = creerZoneResultats();
-        outputAreaSchemes.setPreferredSize(new Dimension(0, 80));
-        card.add(outputAreaSchemes);
-
-
         panel.add(card);
-        panel.add(Box.createVerticalStrut(20));
+        panel.add(Box.createVerticalStrut(25));
 
         // Grille de schèmes
-        JPanel gridPanel = new JPanel(new GridLayout(0, 2, 15, 15));
-        gridPanel.setBackground(BG_LIGHT);
+        JPanel gridPanel = new JPanel(new GridLayout(0, 2, 20, 20));
+        gridPanel.setBackground(BG_PRIMARY);
 
         List<String> schemes = tableSchemes.getTousLesNoms();
         for (String scheme : schemes) {
             gridPanel.add(creerCarteScheme(scheme));
         }
 
-        JScrollPane scroll = new JScrollPane(gridPanel);
-        scroll.setBorder(null);
-        scroll.getVerticalScrollBar().setUnitIncrement(16);
-        panel.add(scroll);
+        // Pas de scroll ici
+        panel.add(gridPanel);
 
         return panel;
     }
+
     private JPanel creerCarteScheme(String scheme) {
+        Scheme schemeObj = tableSchemes.rechercher(scheme);
+        String type = (schemeObj != null) ? schemeObj.getType().toString() : "N/A";
+        String description = (schemeObj != null) ? schemeObj.getDescription() : "Aucune description";
+
         JPanel card = creerCarteModerne();
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
         card.setBorder(new CompoundBorder(
-                new LineBorder(BORDER_COLOR, 2, true),
-                new EmptyBorder(20, 20, 20, 20)
+                new LineBorder(BORDER, 2, true),
+                new EmptyBorder(25, 25, 25, 25)
         ));
         card.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        // Récupérer les informations du schème depuis la table de hachage
-        Scheme schemeObj = tableSchemes.rechercher(scheme);
-        String type = (schemeObj != null) ? schemeObj.getType().toString() : "N/A";
-        String description = (schemeObj != null) ? schemeObj.getDescription() : "Aucune description disponible";
-
         JLabel schemeLabel = new JLabel(scheme);
-        schemeLabel.setFont(new Font("Arial Unicode MS", Font.BOLD, 28));
-        schemeLabel.setForeground(PRIMARY_GREEN);
+        schemeLabel.setFont(new Font("Arial Unicode MS", Font.BOLD, 30));
+        schemeLabel.setForeground(PRIMARY);
         schemeLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JLabel typeLabel = new JLabel("Type: " + type);
-        typeLabel.setFont(new Font("Segoe UI", Font.BOLD, 11));
-        typeLabel.setForeground(PRIMARY_GREEN_LIGHT);
+        typeLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        typeLabel.setForeground(SECONDARY);
         typeLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel descLabel = new JLabel("<html><div style='width:280px'>" + description + "</div></html>");
-        descLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        descLabel.setForeground(TEXT_GRAY);
+        JLabel descLabel = new JLabel("<html><div style='width:350px'>" + description + "</div></html>");
+        descLabel.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        descLabel.setForeground(TEXT_SECONDARY);
         descLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         card.add(schemeLabel);
-        card.add(Box.createVerticalStrut(8));
+        card.add(Box.createVerticalStrut(10));
         card.add(typeLabel);
-        card.add(Box.createVerticalStrut(5));
+        card.add(Box.createVerticalStrut(8));
         card.add(descLabel);
 
         // Effet hover
         card.addMouseListener(new MouseAdapter() {
             public void mouseEntered(MouseEvent e) {
                 card.setBorder(new CompoundBorder(
-                        new LineBorder(PRIMARY_GREEN_LIGHT, 2, true),
-                        new EmptyBorder(20, 20, 20, 20)
+                        new LineBorder(PRIMARY, 2, true),
+                        new EmptyBorder(25, 25, 25, 25)
                 ));
             }
             public void mouseExited(MouseEvent e) {
                 card.setBorder(new CompoundBorder(
-                        new LineBorder(BORDER_COLOR, 2, true),
-                        new EmptyBorder(20, 20, 20, 20)
+                        new LineBorder(BORDER, 2, true),
+                        new EmptyBorder(25, 25, 25, 25)
                 ));
             }
         });
@@ -617,32 +752,33 @@ public class MainSwing extends JFrame {
     private JPanel creerPanneauStatistiquesModerne() {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBackground(BG_LIGHT);
+        panel.setBackground(BG_PRIMARY);
+        panel.setBorder(new EmptyBorder(30, 40, 30, 40));
 
         JPanel card = creerCarteModerne();
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
 
-        JPanel header = creerEnteteSection("📊", "الإحصائيات | Statistiques du système");
+        JPanel header = creerEnteteSection("📊", "الإحصائيات", "Statistiques du système");
         card.add(header);
 
         panel.add(card);
-        panel.add(Box.createVerticalStrut(20));
+        panel.add(Box.createVerticalStrut(25));
 
         // Grille de statistiques
-        JPanel statsGrid = new JPanel(new GridLayout(2, 2, 20, 20));
-        statsGrid.setBackground(BG_LIGHT);
+        JPanel statsGrid = new JPanel(new GridLayout(2, 2, 25, 25));
+        statsGrid.setBackground(BG_PRIMARY);
 
-        statsGrid.add(creerCarteStat("جذور | Racines", String.valueOf(arbreRacines.getTaille()), PRIMARY_GREEN));
-        statsGrid.add(creerCarteStat("أوزان | Schèmes", String.valueOf(tableSchemes.getTaille()), ACCENT_AMBER));
-        statsGrid.add(creerCarteStat("مشتقات | Dérivés", "0", PRIMARY_GREEN));
-        statsGrid.add(creerCarteStat("تحققات | Validations", "0", ACCENT_AMBER));
+        statsGrid.add(creerCarteStat("📚", "جذور | Racines", String.valueOf(arbreRacines.getTaille()), PRIMARY));
+        statsGrid.add(creerCarteStat("🔧", "أوزان | Schèmes", String.valueOf(tableSchemes.getTaille()), SECONDARY));
+        statsGrid.add(creerCarteStat("🔄", "مشتقات | Dérivés", "0", ACCENT));
+        statsGrid.add(creerCarteStat("✓", "تحققات | Validations", "0", SUCCESS));
 
         panel.add(statsGrid);
 
         return panel;
     }
 
-    private JPanel creerCarteStat(String label, String value, Color color) {
+    private JPanel creerCarteStat(String icon, String label, String value, Color color) {
         JPanel card = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -654,28 +790,39 @@ public class MainSwing extends JFrame {
                         getWidth(), getHeight(), color.darker()
                 );
                 g2d.setPaint(gp);
-                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
+                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 25, 25);
+
+                // Ombre douce
+                g2d.setColor(new Color(0, 0, 0, 20));
+                g2d.fillRoundRect(4, 4, getWidth(), getHeight(), 25, 25);
             }
         };
 
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-        card.setBorder(new EmptyBorder(40, 30, 40, 30));
+        card.setBorder(new EmptyBorder(45, 35, 45, 35));
         card.setOpaque(false);
-        card.setPreferredSize(new Dimension(250, 180));
+        card.setPreferredSize(new Dimension(280, 200));
+
+        JLabel iconLabel = new JLabel(icon);
+        iconLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 42));
+        iconLabel.setForeground(new Color(255, 255, 255, 200));
+        iconLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         JLabel valueLabel = new JLabel(value);
-        valueLabel.setFont(new Font("Arial Unicode MS", Font.BOLD, 56));
+        valueLabel.setFont(new Font("Arial Unicode MS", Font.BOLD, 64));
         valueLabel.setForeground(Color.WHITE);
         valueLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         JLabel labelText = new JLabel(label);
         labelText.setFont(new Font("Segoe UI", Font.PLAIN, 16));
-        labelText.setForeground(new Color(255, 255, 255, 230));
+        labelText.setForeground(new Color(255, 255, 255, 220));
         labelText.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         card.add(Box.createVerticalGlue());
-        card.add(valueLabel);
+        card.add(iconLabel);
         card.add(Box.createVerticalStrut(10));
+        card.add(valueLabel);
+        card.add(Box.createVerticalStrut(8));
         card.add(labelText);
         card.add(Box.createVerticalGlue());
 
@@ -684,41 +831,54 @@ public class MainSwing extends JFrame {
 
     private JPanel creerCarteModerne() {
         JPanel panel = new JPanel();
-        panel.setBackground(Color.WHITE);
+        panel.setBackground(BG_CARD);
         panel.setBorder(new CompoundBorder(
-                new LineBorder(BORDER_COLOR, 1, true),
-                new EmptyBorder(30, 30, 30, 30)
+                new LineBorder(BORDER, 1, true),
+                new EmptyBorder(35, 35, 35, 35)
         ));
+        // Ombre portée subtile
+        panel.setOpaque(true);
         return panel;
     }
 
-    private JPanel creerEnteteSection(String icon, String titre) {
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 0));
+    private JPanel creerEnteteSection(String icon, String titreArabe, String titreFr) {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 18, 0));
         panel.setBackground(Color.WHITE);
-        panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
+        panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 70));
 
         JLabel iconLabel = new JLabel(icon);
-        iconLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 24));
-        iconLabel.setPreferredSize(new Dimension(48, 48));
+        iconLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 28));
+        iconLabel.setPreferredSize(new Dimension(55, 55));
         iconLabel.setHorizontalAlignment(SwingConstants.CENTER);
         iconLabel.setOpaque(true);
-        iconLabel.setBackground(new Color(236, 253, 245));
-        iconLabel.setBorder(new EmptyBorder(8, 8, 8, 8));
+        iconLabel.setBackground(new Color(241, 245, 249));
+        iconLabel.setBorder(new EmptyBorder(10, 10, 10, 10));
 
-        JLabel titreLabel = new JLabel(titre);
-        titreLabel.setFont(new Font("Segoe UI", Font.BOLD, 20));
-        titreLabel.setForeground(PRIMARY_GREEN);
+        JPanel textPanel = new JPanel();
+        textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.Y_AXIS));
+        textPanel.setOpaque(false);
+
+        JLabel arabeLabel = new JLabel(titreArabe);
+        arabeLabel.setFont(new Font("Arial Unicode MS", Font.BOLD, 22));
+        arabeLabel.setForeground(PRIMARY);
+
+        JLabel frLabel = new JLabel(titreFr);
+        frLabel.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        frLabel.setForeground(TEXT_SECONDARY);
+
+        textPanel.add(arabeLabel);
+        textPanel.add(frLabel);
 
         panel.add(iconLabel);
-        panel.add(titreLabel);
+        panel.add(textPanel);
 
         return panel;
     }
 
     private JLabel creerLabelModerne(String text) {
         JLabel label = new JLabel(text);
-        label.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        label.setForeground(TEXT_DARK);
+        label.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        label.setForeground(TEXT_PRIMARY);
         label.setAlignmentX(Component.LEFT_ALIGNMENT);
         return label;
     }
@@ -730,30 +890,26 @@ public class MainSwing extends JFrame {
                 Graphics2D g2d = (Graphics2D) g;
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-                if (!isEnabled()) {
-                    g2d.setColor(new Color(243, 244, 246));
-                } else {
-                    g2d.setColor(Color.WHITE);
-                }
-                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
+                g2d.setColor(isEnabled() ? Color.WHITE : new Color(249, 250, 251));
+                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
 
                 if (hasFocus()) {
-                    g2d.setColor(PRIMARY_GREEN_LIGHT);
+                    g2d.setColor(BORDER_FOCUS);
                     g2d.setStroke(new BasicStroke(2));
                 } else {
-                    g2d.setColor(BORDER_COLOR);
+                    g2d.setColor(BORDER);
                     g2d.setStroke(new BasicStroke(2));
                 }
-                g2d.drawRoundRect(1, 1, getWidth()-2, getHeight()-2, 12, 12);
+                g2d.drawRoundRect(1, 1, getWidth()-2, getHeight()-2, 15, 15);
 
                 super.paintComponent(g);
             }
         };
 
-        field.setFont(new Font("Arial Unicode MS", Font.PLAIN, 20));
-        field.setBorder(new EmptyBorder(12, 15, 12, 15));
-        field.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
-        field.setPreferredSize(new Dimension(0, 50));
+        field.setFont(new Font("Arial Unicode MS", Font.PLAIN, 22));
+        field.setBorder(new EmptyBorder(14, 18, 14, 18));
+        field.setMaximumSize(new Dimension(Integer.MAX_VALUE, 55));
+        field.setPreferredSize(new Dimension(0, 55));
         field.setOpaque(false);
         field.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
 
@@ -762,13 +918,13 @@ public class MainSwing extends JFrame {
 
     private JComboBox<String> creerComboBoxModerne() {
         JComboBox<String> combo = new JComboBox<>();
-        combo.setFont(new Font("Arial Unicode MS", Font.PLAIN, 14));
-        combo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
-        combo.setPreferredSize(new Dimension(0, 50));
+        combo.setFont(new Font("Arial Unicode MS", Font.PLAIN, 16));
+        combo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 55));
+        combo.setPreferredSize(new Dimension(0, 55));
         combo.setBackground(Color.WHITE);
         combo.setBorder(new CompoundBorder(
-                new LineBorder(BORDER_COLOR, 2, true),
-                new EmptyBorder(8, 12, 8, 12)
+                new LineBorder(BORDER, 2, true),
+                new EmptyBorder(10, 15, 10, 15)
         ));
         return combo;
     }
@@ -780,44 +936,54 @@ public class MainSwing extends JFrame {
                 Graphics2D g2d = (Graphics2D) g;
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-                GradientPaint gp = new GradientPaint(
-                        0, 0, PRIMARY_GREEN,
-                        getWidth(), 0, new Color(4, 120, 87)
-                );
-                g2d.setPaint(gp);
-                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
+                if (getModel().isPressed()) {
+                    g2d.setColor(PRIMARY_DARK);
+                } else {
+                    GradientPaint gp = new GradientPaint(
+                            0, 0, PRIMARY,
+                            getWidth(), 0, PRIMARY_LIGHT
+                    );
+                    g2d.setPaint(gp);
+                }
+                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
+
+                // Ombre
+                if (!getModel().isPressed()) {
+                    g2d.setColor(new Color(0, 0, 0, 30));
+                    g2d.fillRoundRect(2, 2, getWidth(), getHeight(), 15, 15);
+                }
 
                 super.paintComponent(g);
             }
         };
 
-        btn.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 15));
         btn.setForeground(Color.WHITE);
         btn.setFocusPainted(false);
         btn.setBorderPainted(false);
         btn.setContentAreaFilled(false);
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btn.setPreferredSize(new Dimension(0, 50));
+        btn.setPreferredSize(new Dimension(0, 55));
 
         return btn;
     }
 
     private JButton creerBoutonSecondaire(String text) {
         JButton btn = new JButton(text);
-        btn.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        btn.setForeground(PRIMARY_GREEN);
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        btn.setForeground(PRIMARY);
         btn.setBackground(Color.WHITE);
         btn.setBorder(new CompoundBorder(
-                new LineBorder(PRIMARY_GREEN, 2, true),
-                new EmptyBorder(12, 20, 12, 20)
+                new LineBorder(PRIMARY, 2, true),
+                new EmptyBorder(14, 24, 14, 24)
         ));
         btn.setFocusPainted(false);
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btn.setPreferredSize(new Dimension(0, 50));
+        btn.setPreferredSize(new Dimension(0, 55));
 
         btn.addMouseListener(new MouseAdapter() {
             public void mouseEntered(MouseEvent e) {
-                btn.setBackground(new Color(236, 253, 245));
+                btn.setBackground(new Color(241, 245, 249));
             }
             public void mouseExited(MouseEvent e) {
                 btn.setBackground(Color.WHITE);
@@ -827,34 +993,31 @@ public class MainSwing extends JFrame {
         return btn;
     }
 
-    private JTextArea creerZoneResultats() {
-        JTextArea area = new JTextArea(6, 50);
-        area.setEditable(false);
-        area.setFont(new Font("Arial Unicode MS", Font.BOLD, 15));  // ← BOLD et taille 15
-        area.setBackground(new Color(249, 250, 251));
-        area.setBorder(new CompoundBorder(
-                new LineBorder(BORDER_COLOR, 1, true),
-                new EmptyBorder(15, 15, 15, 15)
-        ));
-        area.setLineWrap(true);
-        area.setWrapStyleWord(true);
-        area.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
-        return area;
-    }
-
-
     private JPanel creerFooter() {
-        JPanel panel = new JPanel();
-        panel.setBackground(PRIMARY_GREEN);
-        panel.setBorder(new EmptyBorder(20, 20, 20, 20));
+        JPanel panel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                GradientPaint gp = new GradientPaint(
+                        0, 0, PRIMARY_DARK,
+                        getWidth(), 0, new Color(109, 40, 217)
+                );
+                g2d.setPaint(gp);
+                g2d.fillRect(0, 0, getWidth(), getHeight());
+            }
+        };
+
+        panel.setPreferredSize(new Dimension(0, 70));
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBorder(new EmptyBorder(20, 20, 20, 20));
 
         JLabel titre = new JLabel("محرك البحث المورفولوجي العربي | Mini Projet Algorithmique 2025-2026");
-        titre.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        titre.setFont(new Font("Segoe UI", Font.BOLD, 13));
         titre.setForeground(Color.WHITE);
         titre.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JLabel sousTitre = new JLabel("Département Génie Logiciel et Systèmes d'Information (GLSI)");
+        JLabel sousTitre = new JLabel("Département GLSI • Powered by Claude AI");
         sousTitre.setFont(new Font("Segoe UI", Font.PLAIN, 11));
         sousTitre.setForeground(new Color(255, 255, 255, 200));
         sousTitre.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -866,56 +1029,52 @@ public class MainSwing extends JFrame {
         return panel;
     }
 
-    // Méthodes d'action
+    // ==================== MÉTHODES D'ACTION ====================
 
     private void genererMotSpecifique() {
-        String racine = (String) racineCombo.getSelectedItem(); // Utiliser ComboBox
+        String racine = (String) racineCombo.getSelectedItem();
         String scheme = (String) schemeCombo.getSelectedItem();
 
-        if (racine == null || racine.equals("-- اختر الجذر --") ||
-                scheme == null || scheme.equals("-- اختر الوزن --")) {
-            afficherErreur(outputAreaGeneration, "يرجى ملء جميع الحقول | Veuillez remplir tous les champs");
+        if (racine == null || racine.contains("--") ||
+                scheme == null || scheme.contains("--")) {
+            afficherPopupErreur("يرجى ملء جميع الحقول\nVeuillez remplir tous les champs");
             return;
         }
 
         String motGenere = moteur.genererMotDerive(racine, scheme);
 
         if (motGenere != null) {
-            afficherSucces(outputAreaGeneration,
-                    "✨ توليد ناجح | Génération réussie\n\n" +
-                            "══════════════════════════════════════════\n" +
-                            "الجذر | Racine: " + racine + "\n" +
-                            "الوزن | Schème: " + scheme + "\n" +
-                            "النتيجة | Résultat: " + motGenere + "\n" +
-                            "══════════════════════════════════════════");
+            afficherPopupSucces(
+                    "✨ توليد ناجح | Génération réussie",
+                    String.format(
+                            "<html><div style='text-align:center; font-size:14px;'>" +
+                                    "<p style='font-size:18px; color:#6366f1; margin:10px;'><b>%s</b></p>" +
+                                    "<p style='margin:5px;'>الجذر | Racine: <b>%s</b></p>" +
+                                    "<p style='margin:5px;'>الوزن | Schème: <b>%s</b></p>" +
+                                    "<p style='font-size:28px; color:#22c55e; margin:15px;'><b>%s</b></p>" +
+                                    "</div></html>",
+                            "Résultat", racine, scheme, motGenere
+                    )
+            );
         } else {
-            afficherErreur(outputAreaGeneration, "فشل في توليد الكلمة | Échec de génération");
+            afficherPopupErreur("فشل في توليد الكلمة\nÉchec de génération");
         }
     }
 
     private void genererTousDerivees() {
-        String racine = (String) racineCombo.getSelectedItem(); // Utiliser ComboBox
+        String racine = (String) racineCombo.getSelectedItem();
 
-        if (racine == null || racine.equals("-- اختر الجذر --")) {
-            afficherErreur(outputAreaGeneration, "يرجى اختيار جذر | Veuillez choisir une racine");
+        if (racine == null || racine.contains("--")) {
+            afficherPopupErreur("يرجى اختيار جذر\nVeuillez choisir une racine");
             return;
         }
 
         List<String> derivees = moteur.genererTousLesDerivees(racine);
 
         if (!derivees.isEmpty()) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("📚 جميع المشتقات | Tous les dérivés de: ").append(racine).append("\n");
-            sb.append("══════════════════════════════════════════\n\n");
-            int count = 1;
-            for (String d : derivees) {
-                sb.append(count++).append(". ").append(d).append("\n");
-            }
-            sb.append("\n══════════════════════════════════════════\n");
-            sb.append("المجموع | Total: ").append(derivees.size()).append(" مشتق");
-            afficherSucces(outputAreaGeneration, sb.toString());
+            afficherDerivesPopup(racine, derivees);
         } else {
-            afficherErreur(outputAreaGeneration, "لم يتم العثور على مشتقات | Aucun dérivé trouvé");
+            afficherPopupErreur("لم يتم العثور على مشتقات\nAucun dérivé trouvé");
         }
     }
 
@@ -924,103 +1083,110 @@ public class MainSwing extends JFrame {
         String racine = racineValField.getText().trim();
 
         if (mot.isEmpty() || racine.isEmpty()) {
-            afficherErreur(outputAreaValidation, "يرجى ملء جميع الحقول | Veuillez remplir tous les champs");
+            afficherPopupErreur("يرجى ملء جميع الحقول\nVeuillez remplir tous les champs");
             return;
         }
 
         if (racine.length() != 3) {
-            afficherErreur(outputAreaValidation, "الجذر يجب أن يحتوي على 3 أحرف | La racine doit contenir 3 lettres");
+            afficherPopupErreur("الجذر يجب أن يحتوي على 3 أحرف\nLa racine doit contenir 3 lettres");
             return;
         }
 
         ResultatValidation resultat = moteur.validerMot(mot, racine);
 
         if (resultat.estValide()) {
-            afficherSucces(outputAreaValidation,
-                    "✓ صحيح | VALIDE\n\n" +
-                            "══════════════════════════════════════════\n" +
-                            "الكلمة | Mot: " + mot + "\n" +
-                            "الجذر | Racine: " + racine + "\n\n" +
-                            resultat.toString() + "\n" +
-                            "══════════════════════════════════════════");
+            afficherPopupSucces(
+                    "✓ صحيح | VALIDE",
+                    String.format(
+                            "<html><div style='text-align:center; font-size:14px;'>" +
+                                    "<p style='font-size:24px; color:#22c55e; margin:15px;'><b>✓ VALIDE</b></p>" +
+                                    "<p style='margin:8px;'>الكلمة | Mot: <b style='font-size:20px;'>%s</b></p>" +
+                                    "<p style='margin:8px;'>الجذر | Racine: <b style='font-size:20px;'>%s</b></p>" +
+                                    "<p style='margin:8px; color:#6366f1;'>%s</p>" +
+                                    "</div></html>",
+                            mot, racine, resultat.toString().replace("\n", "<br>")
+                    )
+            );
         } else {
-            afficherErreur(outputAreaValidation,
-                    "✗ غير صحيح | NON VALIDE\n\n" +
-                            "══════════════════════════════════════════\n" +
-                            "الكلمة | Mot: " + mot + "\n" +
-                            "الجذر | Racine: " + racine + "\n\n" +
-                            resultat.toString() + "\n" +
-                            "══════════════════════════════════════════");
+            afficherPopupErreur(
+                    String.format(
+                            "<html><div style='text-align:center; font-size:14px;'>" +
+                                    "<p style='font-size:24px; color:#ef4444; margin:15px;'><b>✗ NON VALIDE</b></p>" +
+                                    "<p style='margin:8px;'>الكلمة | Mot: <b>%s</b></p>" +
+                                    "<p style='margin:8px;'>الجذر | Racine: <b>%s</b></p>" +
+                                    "<p style='margin:8px;'>%s</p>" +
+                                    "</div></html>",
+                            mot, racine, resultat.toString().replace("\n", "<br>")
+                    )
+            );
         }
     }
+
     private void decomposerMot() {
         String mot = motDecField.getText().trim();
 
         if (mot.isEmpty()) {
-            afficherErreur(outputAreaDecomposition, "يرجى إدخال كلمة | Veuillez entrer un mot");
+            afficherPopupErreur("يرجى إدخال كلمة\nVeuillez entrer un mot");
             return;
         }
 
         ResultatDecomposition resultat = moteur.decomposerMot(mot);
 
-        afficherSucces(outputAreaDecomposition,
-                "🔬 تحليل مورفولوجي | Décomposition morphologique\n\n" +
-                        "══════════════════════════════════════════\n" +
-                        "الكلمة | Mot: " + mot + "\n\n" +
-                        resultat.toString() + "\n" +
-                        "══════════════════════════════════════════");
+        afficherPopupSucces(
+                "🔬 تحليل مورفولوجي | Décomposition",
+                String.format(
+                        "<html><div style='text-align:center; font-size:14px;'>" +
+                                "<p style='font-size:24px; color:#6366f1; margin:15px;'><b>%s</b></p>" +
+                                "<p style='margin:10px; font-size:13px;'>%s</p>" +
+                                "</div></html>",
+                        mot, resultat.toString().replace("\n", "<br>")
+                )
+        );
     }
+
     private void ajouterRacine() {
         String racine = nouvelleRacineField.getText().trim();
 
         if (racine.isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                    "يرجى إدخال جذر | Veuillez entrer une racine",
-                    "خطأ | Erreur",
-                    JOptionPane.ERROR_MESSAGE);
+            afficherPopupErreur("يرجى إدخال جذر\nVeuillez entrer une racine");
             return;
         }
 
         if (racine.length() != 3) {
-            JOptionPane.showMessageDialog(this,
-                    "الجذر يجب أن يحتوي على 3 أحرف | La racine doit contenir 3 lettres",
-                    "خطأ | Erreur",
-                    JOptionPane.ERROR_MESSAGE);
+            afficherPopupErreur("الجذر يجب أن يحتوي على 3 أحرف\nLa racine doit contenir 3 lettres");
             return;
         }
 
         if (arbreRacines.rechercher(racine) != null) {
-            JOptionPane.showMessageDialog(this,
-                    "الجذر موجود مسبقا | Cette racine existe déjà",
-                    "تحذير | Avertissement",
-                    JOptionPane.WARNING_MESSAGE);
+            afficherPopupErreur("الجذر موجود مسبقا\nCette racine existe déjà");
             return;
         }
 
         arbreRacines.inserer(racine);
         nouvelleRacineField.setText("");
-
-        // Rafraîchir le ComboBox des racines dans le panneau de génération
         rafraichirComboRacines();
 
-        JOptionPane.showMessageDialog(this,
-                "✓ تمت الإضافة بنجاح | Racine ajoutée avec succès: " + racine,
-                "نجاح | Succès",
-                JOptionPane.INFORMATION_MESSAGE);
+        afficherPopupSucces(
+                "✓ تمت الإضافة بنجاح",
+                String.format(
+                        "<html><div style='text-align:center;'>" +
+                                "<p style='font-size:32px; color:#22c55e; margin:20px;'><b>%s</b></p>" +
+                                "<p style='font-size:16px;'>Racine ajoutée avec succès!</p>" +
+                                "</div></html>",
+                        racine
+                )
+        );
 
-        // Rafraîchir l'affichage en recréant le panneau
-        contentPanel.remove(contentPanel.getComponent(2)); // Remove old racines panel
-        contentPanel.add(creerPanneauRacinesModerne(), "racines", 2);
+        // Rafraîchir l'affichage
+        contentPanel.remove(3);
+        contentPanel.add(creerPanneauRacinesModerne(), "racines", 3);
         cardLayout.show(contentPanel, "racines");
     }
 
-    /**
-     * Rafraîchit le ComboBox des racines après l'ajout d'une nouvelle racine
-     */
     private void rafraichirComboRacines() {
         if (racineCombo != null) {
             racineCombo.removeAllItems();
-            racineCombo.addItem("-- اختر الجذر --");
+            racineCombo.addItem("-- اختر الجذر | Choisir --");
             List<String> racines = arbreRacines.getToutesLesRacines();
             for (String r : racines) {
                 racineCombo.addItem(r);
@@ -1032,46 +1198,89 @@ public class MainSwing extends JFrame {
         String nom = rechSchemeField.getText().trim();
 
         if (nom.isEmpty()) {
-            afficherErreur(outputAreaSchemes, "يرجى إدخال اسم الوزن | Veuillez entrer le nom du schème");
+            afficherPopupErreur("يرجى إدخال اسم الوزن\nVeuillez entrer le nom du schème");
             return;
         }
 
         Scheme scheme = tableSchemes.rechercher(nom);
 
         if (scheme != null) {
-            afficherSucces(outputAreaSchemes,
-                    "✓ وزن موجود | Schème trouvé!\n\n" +
-                            "══════════════════════════════════════════\n" +
-                            "الاسم | Nom: " + scheme.getNom() + "\n" +
-                            "النوع | Type: " + scheme.getType() + "\n" +
-                            "الوصف | Description: " + scheme.getDescription() + "\n" +
-                            "══════════════════════════════════════════");
+            afficherPopupSucces(
+                    "✓ وزن موجود | Schème trouvé",
+                    String.format(
+                            "<html><div style='text-align:center; font-size:14px;'>" +
+                                    "<p style='font-size:28px; color:#6366f1; margin:15px;'><b>%s</b></p>" +
+                                    "<p style='margin:8px;'><b>Type:</b> %s</p>" +
+                                    "<p style='margin:8px;'>%s</p>" +
+                                    "</div></html>",
+                            scheme.getNom(), scheme.getType(), scheme.getDescription()
+                    )
+            );
         } else {
-            afficherErreur(outputAreaSchemes,
-                    "✗ وزن غير موجود | Schème non trouvé!\n\n" +
-                            "══════════════════════════════════════════\n" +
-                            "الوزن '" + nom + "' غير موجود في النظام\n" +
-                            "══════════════════════════════════════════");
+            afficherPopupErreur(
+                    String.format(
+                            "✗ وزن غير موجود\nSchème '%s' non trouvé",
+                            nom
+                    )
+            );
         }
     }
 
-    // Méthodes utilitaires pour l'affichage
+    // ==================== POPUPS MODERNES ====================
 
-    private void afficherSucces(JTextArea area, String message) {
-        area.setForeground(new Color(0, 64, 48));
-        area.setText(message);
+    private void afficherPopupSucces(String titre, String message) {
+        JDialog dialog = new JDialog(this, titre, true);
+        dialog.setSize(500, 350);
+        dialog.setLocationRelativeTo(this);
+        dialog.setUndecorated(true);
+
+        JPanel panel = new JPanel(new BorderLayout(0, 20));
+        panel.setBackground(Color.WHITE);
+        panel.setBorder(new CompoundBorder(
+                new LineBorder(SUCCESS, 3, true),
+                new EmptyBorder(30, 30, 30, 30)
+        ));
+
+        JLabel messageLabel = new JLabel(message);
+        messageLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        panel.add(messageLabel, BorderLayout.CENTER);
+
+        JButton closeBtn = creerBoutonPrimaire("✖ إغلاق | Fermer");
+        closeBtn.addActionListener(e -> dialog.dispose());
+        panel.add(closeBtn, BorderLayout.SOUTH);
+
+        dialog.add(panel);
+        dialog.setVisible(true);
     }
 
-    private void afficherErreur(JTextArea area, String message) {
-        area.setForeground(new Color(220, 38, 38));
-        area.setText(message);
-    }
+    private void afficherPopupErreur(String message) {
+        JDialog dialog = new JDialog(this, "خطأ | Erreur", true);
+        dialog.setSize(450, 250);
+        dialog.setLocationRelativeTo(this);
+        dialog.setUndecorated(true);
 
-    private void clearAllOutputs() {
-        if (outputAreaGeneration != null) outputAreaGeneration.setText("");
-        if (outputAreaValidation != null) outputAreaValidation.setText("");
-        if (outputAreaDecomposition != null) outputAreaDecomposition.setText("");
-        if (outputAreaSchemes != null) outputAreaSchemes.setText("");
+        JPanel panel = new JPanel(new BorderLayout(0, 20));
+        panel.setBackground(Color.WHITE);
+        panel.setBorder(new CompoundBorder(
+                new LineBorder(ERROR, 3, true),
+                new EmptyBorder(30, 30, 30, 30)
+        ));
+
+        JLabel messageLabel = new JLabel(
+                "<html><div style='text-align:center; font-size:15px;'>" +
+                        message.replace("\n", "<br>") +
+                        "</div></html>"
+        );
+        messageLabel.setForeground(ERROR);
+        messageLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        panel.add(messageLabel, BorderLayout.CENTER);
+
+        JButton closeBtn = creerBoutonPrimaire("✖ إغلاق | Fermer");
+        closeBtn.addActionListener(e -> dialog.dispose());
+        panel.add(closeBtn, BorderLayout.SOUTH);
+
+        dialog.add(panel);
+        dialog.setVisible(true);
     }
 
     public static void main(String[] args) {
