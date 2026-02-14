@@ -61,7 +61,7 @@ arabic-morphological/
 │   │   ├── ChargeurDonnees.java  
 │   │   └── MoteurMorphologique.java      
 │   ├── Main.java               
-│   └──MainSwing.java          
+│   └── MainSwing.java          
 ├── data/
 │   └── racines.txt                # Fichier de racines arabes
 └── README.md                      # Ce fichier
@@ -142,55 +142,6 @@ Derivatives of root 'كتب':
 ```
 
 ---
-
-## 🔧 Utilisation Programmatique
-
-### Exemple de Code Java
-
-```java
-import java.io.IOException;
-import java.util.List;
-
-public class Example {
-    public static void main(String[] args) throws IOException {
-        // Créer l'arbre binaire de recherche
-        BinarySearchTree bst = new BinarySearchTree();
-        
-        // Charger les racines depuis un fichier
-        bst.loadRootsFromFile("arabic_roots.txt");
-        
-        // Insérer une nouvelle racine
-        bst.insert("فهم");
-        
-        // Rechercher une racine
-        boolean found = bst.search("كتب");
-        if (found) {
-            System.out.println("Racine trouvée !");
-        }
-        
-        // Ajouter des dérivés
-        bst.addDerivative("كتب", "كاتب");
-        bst.addDerivative("كتب", "مكتوب");
-        bst.addDerivative("كتب", "كتاب");
-        
-        // Récupérer tous les dérivés
-        List<String> derivatives = bst.getDerivatives("كتب");
-        System.out.println("Dérivés de كتب :");
-        for (String derivative : derivatives) {
-            System.out.println("- " + derivative);
-        }
-        
-        // Afficher toutes les racines (ordre alphabétique)
-        bst.displayAllRoots();
-        
-        // Statistiques
-        System.out.println("Total racines: " + bst.getSize());
-    }
-}
-```
-
----
-
 ## 🔧 Schèmes Implémentés
 
 | Schème | Type | Description |
@@ -200,7 +151,7 @@ public class Example {
 | افتعل | Verbe forme VIII | Action intensive |
 | تفعيل | Masdar | Nom d'action |
 | مفعل | Nom de lieu | Lieu de l'action |
-```
+
 
 **Règles :**
 - Exactement **3 caractères arabes** par racine
@@ -210,40 +161,7 @@ public class Example {
 - Lignes vides ignorées
 
 ---
-
-## Architecture Technique
-
-### Classes Principales
-
-#### 1. `RootNode`
-Représente un nœud dans l'arbre binaire.
-
-```java
-public class RootNode {
-    private String root;                    // Racine arabe (3 lettres)
-    private List<String> derivatives;       // Liste des dérivés
-    private RootNode left;                  // Sous-arbre gauche
-    private RootNode right;                 // Sous-arbre droit
-}
-```
-
-#### 2. `BinarySearchTree`
-Gère l'arbre complet et les opérations.
-
-**Méthodes principales :**
-- `loadRootsFromFile(String filename)` - Charge les racines depuis un fichier
-- `insert(String root)` - Insère une nouvelle racine
-- `search(String root)` - Recherche une racine (O(log n))
-- `addDerivative(String root, String derivative)` - Ajoute un dérivé
-- `getDerivatives(String root)` - Récupère les dérivés
-- `displayAllRoots()` - Affiche toutes les racines triées
-
-#### 3. `ArabicRootBSTDemo`
-Application interactive avec menu.
-
----
-
-## ⚡ Performance et Complexité
+## Performance et Complexité
 
 ### Complexité Algorithmique
 
@@ -324,7 +242,7 @@ boolean valid = validator.validate("كاتب", "كتب");
 ### Tests Fonctionnels
 
 ```bash
-# Tous les tests passent ✅
+# Tous les tests passent 
 ✓ Chargement de 20+ racines
 ✓ Insertion de nouvelles racines
 ✓ Recherche existante/non-existante
@@ -332,8 +250,6 @@ boolean valid = validator.validate("كاتب", "كتب");
 ✓ Affichage ordonné
 ✓ Gestion des doublons
 ✓ Validation des racines
-```
-
 ```
 
 ---
@@ -359,7 +275,7 @@ pwd
 # Utiliser un chemin absolu si nécessaire
 String path = "/chemin/absolu/vers/arabic_roots.txt";
 
-
+```
 ---
 
 
@@ -369,8 +285,7 @@ String path = "/chemin/absolu/vers/arabic_roots.txt";
 ### Fichiers de Documentation
 
 - **README.md** (ce fichier) - Vue d'ensemble et guide rapide
-- **RAPPORT_TECHNIQUE.md** - Documentation technique détaillée
-- **GUIDE_UTILISATION.md** - Guide utilisateur complet en français
+- **RAPPORT_MP_Algo.pdf** - Documentation technique détaillée
 
 ### Ressources Externes
 
@@ -391,21 +306,9 @@ MIT License — feel free to use for educational purposes.
 Ce projet a été réalisé dans le cadre académique du mini-projet d'Algorithmique.
 
 **Année universitaire :** 2025-2026  
-**Enseignants :** Narjes Ben Hariz, Sahbi Bahroun
+**Enseignants :** Narjes Ben Hariz, Sahbi Bahroun   
 **Etudiantes :** Rim Ben Chaalia, Islem Bouchouicha, Nada Mokrane
 
----
-
-## Statistiques du Projet
-
-```
-Lignes de code      : ~800
-Classes             : 3
-Méthodes            : 25+
-Tests               : 15+
-Racines par défaut  : 20
-Documentation       : 3 fichiers
-```
 
 ---
 
@@ -432,6 +335,6 @@ Ce projet permet de maîtriser :
 
 ---
 
-**Dernière mise à jour :** Janvier 2026
+**Dernière mise à jour :** Fevrier 2026
 
 ---
