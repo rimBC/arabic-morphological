@@ -13,14 +13,7 @@ import models.RacineNode;
 import models.Scheme;
 import java.util.List;
 
-/**
- * Interface graphique Swing ultra-moderne
- * - Scroll principal sur tout le contenu
- * - Résultats en popup stylés
- * - Logos Claude de part et d'autre
- * - Affichage des dérivés au clic sur racine
- * - Design moderne avec couleurs actualisées
- */
+
 public class MainSwing extends JFrame {
 
     private ABR arbreRacines;
@@ -88,7 +81,7 @@ public class MainSwing extends JFrame {
         setLayout(new BorderLayout(0, 0));
         getContentPane().setBackground(BG_PRIMARY);
 
-        // En-tête avec logos Claude
+        // En-tête avec logos
         add(creerEnteteAvecLogos(), BorderLayout.NORTH);
 
         // Navigation latérale
@@ -123,7 +116,7 @@ public class MainSwing extends JFrame {
     }
 
     /**
-     * En-tête avec logos Claude de part et d'autre
+     * En-tête avec logos de part et d'autre
      */
     private JPanel creerEnteteAvecLogos() {
         JPanel panel = new JPanel() {
@@ -152,9 +145,9 @@ public class MainSwing extends JFrame {
         panel.setLayout(new BorderLayout());
         panel.setBorder(new EmptyBorder(20, 40, 20, 40));
 
-        // Logo Claude GAUCHE
-        JPanel logoGauche = creerLogoClaude();
-        logoGauche.setPreferredSize(new Dimension(120, 120));
+        // Logo isi GAUCHE
+        JPanel logoGauche = creerLogoMU();
+        logoGauche.setPreferredSize(new Dimension(200, 120));
         panel.add(logoGauche, BorderLayout.WEST);
 
         // Centre avec titres
@@ -172,23 +165,18 @@ public class MainSwing extends JFrame {
         sousTitre.setForeground(new Color(255, 255, 255, 220));
         sousTitre.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JLabel powered = new JLabel("Powered by Claude AI");
-        powered.setFont(new Font("Segoe UI", Font.ITALIC, 12));
-        powered.setForeground(new Color(255, 255, 255, 180));
-        powered.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         centre.add(Box.createVerticalGlue());
         centre.add(titreArabe);
         centre.add(Box.createVerticalStrut(8));
         centre.add(sousTitre);
         centre.add(Box.createVerticalStrut(5));
-        centre.add(powered);
         centre.add(Box.createVerticalGlue());
 
         panel.add(centre, BorderLayout.CENTER);
 
-        // Logo Claude DROITE
-        JPanel logoDroit = creerLogoClaude();
+        // Logo utm DROITE
+        JPanel logoDroit = creerLogoMU2();
         logoDroit.setPreferredSize(new Dimension(120, 120));
         panel.add(logoDroit, BorderLayout.EAST);
 
@@ -196,43 +184,75 @@ public class MainSwing extends JFrame {
     }
 
     /**
-     * Créer un logo Claude stylisé
+     * Créer un logo stylisé
      */
-    private JPanel creerLogoClaude() {
+    private JPanel creerLogoMU() {
+        // Charger l'image une seule fois
+        ImageIcon logoIcon = new ImageIcon("data/ISI.png");
+        // (remplace par le vrai nom du fichier : mu_logo.png / logo.png / etc.)
+
         JPanel panel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g;
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-                int size = Math.min(getWidth(), getHeight()) - 20;
+                // Activer l'anti-aliasing (meilleure qualité)
+                g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                        RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+                g2d.setRenderingHint(RenderingHints.KEY_RENDERING,
+                        RenderingHints.VALUE_RENDER_QUALITY);
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                        RenderingHints.VALUE_ANTIALIAS_ON);
+
+                // Calcul de la taille (avec marge)
+                int size = getWidth();
                 int x = (getWidth() - size) / 2;
                 int y = (getHeight() - size) / 2;
 
-                // Cercle de fond avec gradient
-                GradientPaint circle = new GradientPaint(
-                        x, y, new Color(255, 255, 255, 200),
-                        x + size, y + size, new Color(255, 255, 255, 100)
-                );
-                g2d.setPaint(circle);
-                g2d.fillOval(x, y, size, size);
 
-                // Bordure
-                g2d.setColor(new Color(255, 255, 255, 150));
-                g2d.setStroke(new BasicStroke(3));
-                g2d.drawOval(x, y, size, size);
 
-                // Logo "C" stylisé au centre
-                g2d.setColor(PRIMARY_DARK);
-                g2d.setFont(new Font("Segoe UI", Font.BOLD, size / 2));
-                FontMetrics fm = g2d.getFontMetrics();
-                String text = "C";
-                int textX = x + (size - fm.stringWidth(text)) / 2;
-                int textY = y + ((size - fm.getHeight()) / 2) + fm.getAscent();
-                g2d.drawString(text, textX, textY);
+                // Dessiner le logo MU (image centrée et redimensionnée)
+                Image logo = logoIcon.getImage();
+                g2d.drawImage(logo, x, y, size, size, this);
             }
         };
+
+        panel.setOpaque(false);
+        return panel;
+    }
+    private JPanel creerLogoMU2() {
+        // Charger l'image une seule fois
+        ImageIcon logoIcon = new ImageIcon("data/Utm.png");
+        // (remplace par le vrai nom du fichier : mu_logo.png / logo.png / etc.)
+
+        JPanel panel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+
+                // Activer l'anti-aliasing (meilleure qualité)
+                g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                        RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+                g2d.setRenderingHint(RenderingHints.KEY_RENDERING,
+                        RenderingHints.VALUE_RENDER_QUALITY);
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                        RenderingHints.VALUE_ANTIALIAS_ON);
+
+                // Calcul de la taille (avec marge)
+                int size = getWidth();
+                int x = (getWidth() - size) / 2;
+                int y = (getHeight() - size) / 2;
+
+
+
+                // Dessiner le logo MU (image centrée et redimensionnée)
+                Image logo = logoIcon.getImage();
+                g2d.drawImage(logo, x, y, size, size, this);
+            }
+        };
+
         panel.setOpaque(false);
         return panel;
     }
@@ -1017,14 +1037,8 @@ public class MainSwing extends JFrame {
         titre.setForeground(Color.WHITE);
         titre.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JLabel sousTitre = new JLabel("Département GLSI • Powered by Claude AI");
-        sousTitre.setFont(new Font("Segoe UI", Font.PLAIN, 11));
-        sousTitre.setForeground(new Color(255, 255, 255, 200));
-        sousTitre.setAlignmentX(Component.CENTER_ALIGNMENT);
-
         panel.add(titre);
         panel.add(Box.createVerticalStrut(5));
-        panel.add(sousTitre);
 
         return panel;
     }
