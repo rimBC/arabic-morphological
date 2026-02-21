@@ -16,6 +16,11 @@ import java.util.List;
 
 public class MainSwing extends JFrame {
 
+    private int compteurDerivees = 0;
+    private int compteurValidations = 0;
+    private JLabel labelDerivees;
+    private JLabel labelValidations;
+
     private ABR arbreRacines;
     private HashTable tableSchemes;
     private MoteurMorphologique moteur;
@@ -784,6 +789,16 @@ public class MainSwing extends JFrame {
         return card;
     }
 
+    private JLabel trouverValueLabel(JPanel carte) {
+        for (Component c : carte.getComponents()) {
+            if (c instanceof JLabel) {
+                JLabel l = (JLabel) c;
+                if (l.getFont().getSize() == 64) return l;
+            }
+        }
+        return new JLabel(); // fallback
+    }
+
     private JPanel creerPanneauStatistiquesModerne() {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -800,13 +815,22 @@ public class MainSwing extends JFrame {
         panel.add(Box.createVerticalStrut(25));
 
         // Grille de statistiques
-        JPanel statsGrid = new JPanel(new GridLayout(2, 2, 25, 25));
+        JPanel statsGrid = new JPanel(new GridLayout(2, 2, 15, 15));
+        statsGrid.setMaximumSize(new Dimension(1000, 300)); // ✅ limite la taille totale
+        statsGrid.setPreferredSize(new Dimension(1000, 300));
+        statsGrid.setAlignmentX(Component.CENTER_ALIGNMENT);
+
         statsGrid.setBackground(BG_PRIMARY);
 
         statsGrid.add(creerCarteStat("📚", "جذور | Racines", String.valueOf(arbreRacines.getTaille()), PRIMARY));
         statsGrid.add(creerCarteStat("🔧", "أوزان | Schèmes", String.valueOf(tableSchemes.getTaille()), SECONDARY));
-        statsGrid.add(creerCarteStat("🔄", "مشتقات | Dérivés", "0", ACCENT));
-        statsGrid.add(creerCarteStat("✓", "تحققات | Validations", "0", SUCCESS));
+        JPanel carteDerivees = creerCarteStat("🔄", "مشتقات | Dérivés", "0", ACCENT);
+        labelDerivees = trouverValueLabel(carteDerivees);
+        statsGrid.add(carteDerivees);
+
+        JPanel carteValidations = creerCarteStat("✓", "تحققات | Validations", "0", SUCCESS);
+        labelValidations = trouverValueLabel(carteValidations);
+        statsGrid.add(carteValidations);
 
         panel.add(statsGrid);
 
@@ -834,22 +858,22 @@ public class MainSwing extends JFrame {
         };
 
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-        card.setBorder(new EmptyBorder(45, 35, 45, 35));
+        card.setBorder(new EmptyBorder(20, 20, 20, 20));
         card.setOpaque(false);
-        card.setPreferredSize(new Dimension(280, 200));
+        card.setPreferredSize(new Dimension(90, 50));
 
         JLabel iconLabel = new JLabel(icon);
-        iconLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 42));
+        iconLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 24));
         iconLabel.setForeground(new Color(255, 255, 255, 200));
         iconLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         JLabel valueLabel = new JLabel(value);
-        valueLabel.setFont(new Font("Arial Unicode MS", Font.BOLD, 64));
+        valueLabel.setFont(new Font("Arial Unicode MS", Font.BOLD, 36));
         valueLabel.setForeground(Color.WHITE);
         valueLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         JLabel labelText = new JLabel(label);
-        labelText.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        labelText.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         labelText.setForeground(new Color(255, 255, 255, 220));
         labelText.setAlignmentX(Component.CENTER_ALIGNMENT);
 
@@ -1073,6 +1097,9 @@ public class MainSwing extends JFrame {
         String motGenere = moteur.genererMotDerive(racine, scheme);
 
         if (motGenere != null) {
+            compteurDerivees++;  // ← ICI
+            if (labelDerivees != null) labelDerivees.setText(String.valueOf(compteurDerivees));  // ← ICI
+
             compteurDerivesParRacine.put(racine,
                     compteurDerivesParRacine.getOrDefault(racine, 0) + 1);
             afficherPopupSucces(
@@ -1104,6 +1131,9 @@ public class MainSwing extends JFrame {
         List<String> derivees = moteur.genererTousLesDerivees(racine);
 
         if (!derivees.isEmpty()) {
+            compteurDerivees += derivees.size();  // ← ICI
+            if (labelDerivees != null) labelDerivees.setText(String.valueOf(compteurDerivees));
+
             afficherDerivesPopup(racine, derivees);
         } else {
             afficherPopupErreur("لم يتم العثور على مشتقات\nAucun dérivé trouvé");
@@ -1125,6 +1155,9 @@ public class MainSwing extends JFrame {
         }
 
         ResultatValidation resultat = moteur.validerMot(mot, racine);
+
+        compteurValidations++;
+        if (labelValidations != null) labelValidations.setText(String.valueOf(compteurValidations));
 
         if (resultat.estValide()) {
             afficherPopupSucces(
