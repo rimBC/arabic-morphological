@@ -25,6 +25,8 @@ public class MainSwing extends JFrame {
     private JComboBox<String> schemeCombo;
 
     private static final String FICHIER_RACINES = "data/racines.txt";
+    // Map pour tracker le nombre de dérivés générés par racine
+    private java.util.HashMap<String, Integer> compteurDerivesParRacine = new java.util.HashMap<>();
 
     // Palette de couleurs moderne et professionnelle
     private static final Color PRIMARY = new Color(99, 102, 241);        // Indigo moderne
@@ -562,7 +564,7 @@ public class MainSwing extends JFrame {
         card.setBorder(new EmptyBorder(25, 20, 25, 20));
         card.setCursor(new Cursor(Cursor.HAND_CURSOR));
         card.setOpaque(false);
-        card.setPreferredSize(new Dimension(140, 130));
+        card.setPreferredSize(new Dimension(110, 110));
 
         JLabel racineLabel = new JLabel(racine);
         racineLabel.setFont(new Font("Arial Unicode MS", Font.BOLD, 36));
@@ -570,8 +572,8 @@ public class MainSwing extends JFrame {
         racineLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         // Compter les dérivés
-        List<String> derives = moteur.genererTousLesDerivees(racine);
-        JLabel countLabel = new JLabel(derives.size() + " مشتق");
+        int nbDerives = compteurDerivesParRacine.getOrDefault(racine, 0);
+        JLabel countLabel = new JLabel(nbDerives + " مشتق");
         countLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
         countLabel.setForeground(TEXT_SECONDARY);
         countLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -585,6 +587,7 @@ public class MainSwing extends JFrame {
         // Clic pour afficher les dérivés dans un popup
         card.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
+                List<String> derives = moteur.genererTousLesDerivees(racine);
                 afficherDerivesPopup(racine, derives);
             }
             public void mouseEntered(MouseEvent e) {
@@ -604,9 +607,15 @@ public class MainSwing extends JFrame {
     /**
      * Affiche un popup moderne avec tous les dérivés d'une racine
      */
+    /**
+     * Affiche un popup moderne avec tous les dérivés d'une racine
+     */
+    /**
+     * Affiche un popup moderne avec tous les dérivés d'une racine
+     */
     private void afficherDerivesPopup(String racine, List<String> derives) {
         JDialog dialog = new JDialog(this, "المشتقات | Dérivés de: " + racine, true);
-        dialog.setSize(600, 500);
+        dialog.setSize(650, 600);  // Largeur augmentée
         dialog.setLocationRelativeTo(this);
 
         JPanel mainPanel = new JPanel(new BorderLayout(0, 20));
@@ -634,9 +643,10 @@ public class MainSwing extends JFrame {
 
         mainPanel.add(headerPanel, BorderLayout.NORTH);
 
-        // Liste des dérivés dans une grille
-        JPanel gridPanel = new JPanel(new GridLayout(0, 2, 15, 15));
-        gridPanel.setBackground(Color.WHITE);
+        // Panel conteneur pour la liste verticale
+        JPanel containerPanel = new JPanel();
+        containerPanel.setLayout(new BoxLayout(containerPanel, BoxLayout.Y_AXIS));
+        containerPanel.setBackground(Color.WHITE);
 
         for (String derive : derives) {
             JPanel deriveCard = new JPanel();
@@ -646,19 +656,24 @@ public class MainSwing extends JFrame {
                     new EmptyBorder(15, 20, 15, 20)
             ));
             deriveCard.setLayout(new BorderLayout());
+            deriveCard.setMaximumSize(new Dimension(Integer.MAX_VALUE, 70));
 
-            JLabel deriveLabel = new JLabel(derive);
+            JLabel deriveLabel = new JLabel(derive.replace("→", "←"));
             deriveLabel.setFont(new Font("Arial Unicode MS", Font.BOLD, 24));
             deriveLabel.setForeground(TEXT_PRIMARY);
             deriveLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
             deriveCard.add(deriveLabel);
-            gridPanel.add(deriveCard);
+            containerPanel.add(deriveCard);
+            containerPanel.add(Box.createVerticalStrut(12));  // Espacement entre les cartes
         }
 
-        JScrollPane scroll = new JScrollPane(gridPanel);
+        // Scroll VERTICAL seulement
+        JScrollPane scroll = new JScrollPane(containerPanel);
         scroll.setBorder(null);
         scroll.getVerticalScrollBar().setUnitIncrement(16);
+        scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         mainPanel.add(scroll, BorderLayout.CENTER);
 
         // Bouton fermer
@@ -702,7 +717,7 @@ public class MainSwing extends JFrame {
         panel.add(Box.createVerticalStrut(25));
 
         // Grille de schèmes
-        JPanel gridPanel = new JPanel(new GridLayout(0, 2, 20, 20));
+        JPanel gridPanel = new JPanel(new GridLayout(0, 1, 15, 15));
         gridPanel.setBackground(BG_PRIMARY);
 
         List<String> schemes = tableSchemes.getTousLesNoms();
@@ -1058,6 +1073,8 @@ public class MainSwing extends JFrame {
         String motGenere = moteur.genererMotDerive(racine, scheme);
 
         if (motGenere != null) {
+            compteurDerivesParRacine.put(racine,
+                    compteurDerivesParRacine.getOrDefault(racine, 0) + 1);
             afficherPopupSucces(
                     "✨ توليد ناجح | Génération réussie",
                     String.format(
@@ -1070,6 +1087,7 @@ public class MainSwing extends JFrame {
                             "Résultat", racine, scheme, motGenere
                     )
             );
+            rafraichirPanneauRacines();
         } else {
             afficherPopupErreur("فشل في توليد الكلمة\nÉchec de génération");
         }
@@ -1196,7 +1214,13 @@ public class MainSwing extends JFrame {
         contentPanel.add(creerPanneauRacinesModerne(), "racines", 3);
         cardLayout.show(contentPanel, "racines");
     }
-
+    private void rafraichirPanneauRacines() {    // ← NOUVELLE MÉTHODE AJOUTÉE
+        // Recréer le panneau des racines avec les nouveaux compteurs
+        contentPanel.remove(3);
+        contentPanel.add(creerPanneauRacinesModerne(), "racines", 3);
+        contentPanel.revalidate();
+        contentPanel.repaint();
+    }
     private void rafraichirComboRacines() {
         if (racineCombo != null) {
             racineCombo.removeAllItems();
